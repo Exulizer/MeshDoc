@@ -46,8 +46,4 @@
 * **3MF:** Modern 3D Manufacturing Format container packaging.
 * **Wavefront OBJ:** Universal 3D polygonal geometry.
 
-### 7. 📬 Hetzner-Server Backend (`contact.php`)
-* Secure PHP backend for Hetzner Webhosting & Cloud servers.
-* Anti-spam honeypot, header injection protection, rate limiting, and SPF/DMARC compliant delivery to `info@svender3d.de`.
-
 ---
