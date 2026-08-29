@@ -1,0 +1,52 @@
+﻿MeshDoc End-User & Source-Available License
+
+Copyright (c) 2026 Sven Harzer (https://www.svender3d.de). All Rights Reserved.
+
+================================================================================
+1. GRANT OF LICENSE & PERMITTED USE
+================================================================================
+
+Permission is hereby granted, free of charge, to any person or organization 
+obtaining access to this software and associated documentation files (the "Software"), 
+to RUN, EXECUTE, and USE the Software for:
+
+  (a) PERSONAL & PRIVATE PURPOSES:
+      Inspecting, analyzing, preparing, and repairing 3D printing mesh files 
+      (STL, 3MF, OBJ) for non-commercial and personal hobby use.
+
+  (b) COMMERCIAL PURPOSES:
+      Using the Software to inspect, repair, analyze, and optimize 3D model files 
+      for commercial manufacturing, client 3D printing services, and commercial 
+      product workflows.
+
+================================================================================
+2. RESTRICTIONS & PROHIBITIONS (NO RE-DISTRIBUTION / NO COPYING)
+================================================================================
+
+Except as expressly authorized above, you may NOT:
+
+  1. COPY & REDISTRIBUTE:
+     Copy, clone, duplicate, republish, mirror, re-host, distribute, or publicly 
+     display the source code, stylesheets, scripts, or assets of the Software on 
+     any public or private server, website, or repository without prior written 
+     consent from the copyright holder.
+
+  2. DERIVATIVE WORKS & RESALE:
+     Modify, adapt, translate, create derivative works of, resell, sublicense, 
+     lease, rent, or repackage the Software as a standalone competing product or service.
+
+  3. BRANDING & TRADEMARK:
+     Use the names "MeshDoc", "Svender3D", or associated logos, icons, and visual 
+     assets in any manner that suggests endorsement, affiliation, or sponsorship 
+     without prior written permission.
+
+================================================================================
+3. DISCLAIMER OF WARRANTY & LIMITATION OF LIABILITY
+================================================================================
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, 
+WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN 
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

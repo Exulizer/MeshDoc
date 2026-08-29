@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MeshDoc | 3D Print Mesh Diagnostics & Auto-Repair</title>
+  
+  <!-- SEO & Meta Tags -->
+  <meta name="description" content="MeshDoc — 100% Client-Side 3D Mesh Diagnostics & Automated Repair for STL, 3MF and OBJ. Watertight capping, normal alignment, polygon reduction without server uploads.">
+  <meta name="keywords" content="MeshDoc, 3D Print, STL repair, 3MF repair, Non-Manifold, Watertight, Mesh Analyzer, 3D Print Tool, Three.js, Manifold, Zero-Upload">
+  <meta name="author" content="Sven Harzer (svender3d.de)">
+  <meta name="robots" content="index, follow">
+
+  <!-- Schema.org JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "MeshDoc",
+    "url": "https://www.svender3d.de",
+    "applicationCategory": "DesignApplication",
+    "operatingSystem": "All",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "EUR"
+    },
+    "description": "MeshDoc: Client-side 3D print mesh diagnostics, watertight auto-repair, normal orientation, polygon decimation, and material weight estimation for STL, OBJ, and 3MF files."
+  }
+  </script>
+
+  <!-- 100% Local Self-Hosted Three.js Import Map -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./assets/vendor/three/three.module.js",
+      "three/addons/": "./assets/vendor/three/"
+    }
+  }
+  </script>
+
+  <!-- Minified Combined Stylesheet (Includes Self-Hosted WOFF2 Fonts) -->
+  <link rel="stylesheet" href="assets/css/style.min.css">
+
+  <!-- Self-Hosted JSZip for 3MF OPC Package extraction and export -->
+  <script src="assets/vendor/jszip/jszip.min.js"></script>
+</head>
+<body>
+  <!-- Fallback Banner for file:/// Protocol -->
+  <div id="fileProtocolWarning" style="display: none; background: #ef4444; color: #fff; padding: 10px 16px; font-size: 0.85rem; text-align: center; z-index: 99999; position: relative;">
+    ⚠️ <strong>Notice:</strong> When opened directly via <code>file:///</code>, browsers block ES modules. Please start a local web server (e.g. <code>python -m http.server 8080</code> or in VS Code with <em>Live Server</em>).
+  </div>
+  <script>
+    if (window.location.protocol === 'file:') {
+      document.getElementById('fileProtocolWarning').style.display = 'block';
+    }
+  </script>
+
+  <div class="app-container">
+    
+    <!-- Top Header Navigation -->
+    <header class="app-header">
+      <div class="brand-wrapper">
+        <div class="brand-logo" style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(99, 102, 241, 0.15)); border: 1.5px solid var(--accent-cyan); border-radius: 10px; display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; box-shadow: 0 0 15px rgba(56, 189, 248, 0.25);">
+          <!-- MeshDoc Custom Vector Logo: 3D Wireframe Hexagon + Medical Repair Cross -->
+          <svg viewBox="0 0 32 32" width="24" height="24" fill="none">
+            <!-- 3D Mesh Hexagon Outline -->
+            <polygon points="16,2 29,9.5 29,22.5 16,30 3,22.5 3,9.5" stroke="url(#meshdoc-grad)" stroke-width="2" stroke-linejoin="round" fill="rgba(56, 189, 248, 0.08)" />
+            <!-- Inner Isometric Mesh Wireframe Lines -->
+            <line x1="16" y1="2" x2="16" y2="10" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round" />
+            <line x1="29" y1="22.5" x2="22" y2="18.5" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round" />
+            <line x1="3" y1="22.5" x2="10" y2="18.5" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round" />
+            <!-- Glowing Medical Doctor Cross in Center -->
+            <path d="M14 10h4v3h3v4h-3v3h-4v-3h-3v-4h3v-3z" fill="url(#cross-grad)" stroke="#38bdf8" stroke-width="1" stroke-linejoin="round" />
+            <!-- Vertex Nodes -->
+            <circle cx="16" cy="2" r="1.5" fill="#38bdf8" />
+            <circle cx="29" cy="9.5" r="1.5" fill="#6366f1" />
+            <circle cx="29" cy="22.5" r="1.5" fill="#38bdf8" />
+            <circle cx="16" cy="30" r="1.5" fill="#6366f1" />
+            <circle cx="3" cy="22.5" r="1.5" fill="#38bdf8" />
+            <circle cx="3" cy="9.5" r="1.5" fill="#6366f1" />
+            <defs>
+              <linearGradient id="meshdoc-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#38bdf8" />
+                <stop offset="100%" stop-color="#6366f1" />
+              </linearGradient>
+              <linearGradient id="cross-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#38bdf8" />
+                <stop offset="100%" stop-color="#22c55e" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1 data-i18n="appTitle">MeshDoc</h1>
+          <p data-i18n="appSubtitle">Client-Side Mesh Diagnostics, Auto-Repair & Optimization</p>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <!-- What's New Button -->
+        <button class="btn btn-secondary header-btn" onclick="window.openModal('modalWhatsNew', event)" data-open-modal="modalWhatsNew" title="What's New / Release Notes">
+          <span class="pulse-dot"></span>
+          <span data-i18n="navWhatsNew">What's New</span>
+          <span class="version-tag">v1.4</span>
+        </button>
+
+        <!-- GitHub Repository Link -->
+        <a href="https://github.com/svender3d/mesh-repair-3d" target="_blank" rel="noopener" class="btn btn-secondary header-btn" title="GitHub Repository">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+          </svg>
+          <span data-i18n="linkGitHub">GitHub</span>
+        </a>
+
+        <!-- Language Switcher (EN | DE) -->
+        <div class="lang-switch-wrapper" style="display: flex; background: var(--bg-panel); border: 1px solid var(--border-default); border-radius: var(--radius-sm); padding: 2px;">
+          <button class="lang-btn active" data-lang="en">EN</button>
+          <button class="lang-btn" data-lang="de">DE</button>
+        </div>
+
+        <button class="btn btn-secondary header-btn" data-open-modal="modalContact" data-i18n="contactBtn">
+          ✉️ Contact
+        </button>
+        <div class="privacy-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
+          <span data-i18n="privacyBadge">100% Local Processing (Zero-Upload)</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Bento Grid Dashboard -->
+    <main class="dashboard-grid">
+      
+      <!-- LEFT SIDEBAR: File Upload & Diagnostics -->
+      <section class="bento-card left-sidebar" aria-label="Datei-Upload und Mesh-Diagnose">
+        <div class="bento-header">
+          <h2 class="bento-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+            <span data-i18n="diagnosticsTitle">Mesh-Diagnose</span>
+          </h2>
+        </div>
+
+        <div class="bento-content">
+          <!-- Dropzone -->
+          <div class="dropzone-container" id="dropzone" role="button" tabindex="0" aria-label="3D-Datei ablegen oder auswählen">
+            <div class="dropzone-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+            </div>
+            <div class="dropzone-text">
+              <h3 data-i18n="dropzoneTitle">Datei ablegen oder hier klicken</h3>
+              <p data-i18n="dropzoneSubtitle">STL, OBJ oder 3MF per Drag & Drop</p>
+            </div>
+            <div class="dropzone-tags">
+              <span class="tag-badge">.STL</span>
+              <span class="tag-badge">.OBJ</span>
+              <span class="tag-badge">.3MF</span>
+            </div>
+          </div>
+          <input type="file" id="fileInput" accept=".stl,.obj,.3mf" style="display: none;">
+
+          <!-- Progress Bar -->
+          <div class="progress-bar-container" id="progressBar">
+            <div class="progress-bar-fill" style="width: 100%;"></div>
+          </div>
+
+          <!-- File Info Badge -->
+          <div class="file-info-badge" id="fileBadge" style="margin-top: 12px; display: none;">
+            <span class="file-info-name" id="fileNameText">model.stl</span>
+            <span class="file-info-size" id="fileSizeText">0 KB</span>
+          </div>
+
+          <!-- Sample Models Selection -->
+          <div style="margin: 12px 0;">
+            <select class="select-input" id="sampleModelSelect" aria-label="Beispielmodell auswählen">
+              <option value="" disabled selected data-i18n="sampleSelectDefault">Beispiel-Modell testen...</option>
+              <option value="brokenCube" data-i18n="sampleBrokenCube">⚠️ Würfel mit Loch (Non-Manifold Test)</option>
+              <option value="cylinder" data-i18n="sampleCylinder">⚠️ Offener Zylinder (Boundary Test)</option>
+              <option value="torus" data-i18n="sampleTorus">✅ Perfekter Torus (Watertight)</option>
+            </select>
+          </div>
+
+          <!-- 3D Printability Verdict Card -->
+          <div class="printability-card not-ready" id="printabilityCard">
+            <div class="printability-header">
+              <div class="printability-badge-wrapper">
+                <span class="printability-badge bad" id="printabilityBadge">
+                  <svg viewBox="0 0 20 20" fill="currentColor" width="15" height="15" id="printabilityIcon">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                  </svg>
+                  <span id="printabilityBadgeText" data-i18n="printNotReadyTitle">❌ Not 3D-Printable (Slicing Defect Risk)</span>
+                </span>
+              </div>
+              <p class="printability-desc" id="printabilityDescText" data-i18n="printNotReadyDesc">
+                The model contains topological defects. Slicers will produce hollow infill defects or slicing crashes.
+              </p>
+            </div>
+            <div class="printability-reasons-list" id="printabilityReasonsList">
+              <!-- Dynamically populated with reasons -->
+            </div>
+          </div>
+
+          <!-- Primary Metrics Grid -->
+          <div class="metrics-grid">
+            <div class="metric-box">
+              <span class="metric-label" data-i18n="metricVertices">Vertices</span>
+              <span class="metric-value" id="metricVertices">0</span>
+            </div>
+            <div class="metric-box">
+              <span class="metric-label" data-i18n="metricTriangles">Dreiecke (Facets)</span>
+              <span class="metric-value" id="metricTriangles">0</span>
+            </div>
+            <div class="metric-box">
+              <span class="metric-label" data-i18n="metricVolume">Volumen (cm³)</span>
+              <span class="metric-value" id="metricVolume">0.00 cm³</span>
+            </div>
+            <div class="metric-box">
+              <span class="metric-label" data-i18n="metricArea">Oberfläche (cm²)</span>
+              <span class="metric-value" id="metricArea">0.00 cm²</span>
+            </div>
+          </div>
+
+          <!-- Bounding Box Dimensions -->
+          <div class="metric-box" style="margin-bottom: 12px;">
+            <span class="metric-label" data-i18n="dimensionsLabel">Abmessungen (X × Y × Z in mm)</span>
+            <div style="display: flex; gap: 12px; margin-top: 4px; font-family: var(--font-mono); font-weight: 700;">
+              <span>X: <span id="metricDimX" style="color: var(--accent-cyan);">0</span> mm</span>
+              <span>Y: <span id="metricDimY" style="color: var(--accent-cyan);">0</span> mm</span>
+              <span>Z: <span id="metricDimZ" style="color: var(--accent-cyan);">0</span> mm</span>
+            </div>
+          </div>
+
+          <!-- Detailed Issue Inspection List -->
+          <div class="issues-container">
+            <div class="issue-item success" id="issueOpenEdges">
+              <span class="issue-name" data-i18n="issueOpenEdges">Holes / Open Edges</span>
+              <span class="issue-count">0</span>
+            </div>
+            <div class="issue-item success" id="issueNonManifold">
+              <span class="issue-name" data-i18n="issueNonManifold">Non-Manifold Edges</span>
+              <span class="issue-count">0</span>
+            </div>
+            <div class="issue-item success" id="issueInverted">
+              <span class="issue-name" data-i18n="issueInverted">Inconsistent Face Normals</span>
+              <span class="issue-count">0</span>
+            </div>
+            <div class="issue-item success" id="issueDegenerates">
+              <span class="issue-name" data-i18n="issueDegenerates">Degenerate Triangles</span>
+              <span class="issue-count">0</span>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- CENTER: 3D Interactive Viewport -->
+      <section class="bento-card viewer-card" aria-label="3D Modell Ansicht">
+        <div class="viewer-canvas-wrapper" id="viewportWrapper">
+          
+          <!-- Top Floating Controls -->
+          <div class="viewer-overlay-top">
+            <!-- Mode Switcher -->
+            <div class="viewer-mode-selector">
+              <button class="mode-btn active" data-mode="original">
+                <span data-i18n="modeOriginal">Original</span>
+              </button>
+              <button class="mode-btn" data-mode="repaired">
+                <span data-i18n="modeRepaired">Repariert</span>
+              </button>
+              <button class="mode-btn" data-mode="split">
+                <span data-i18n="modeSplit">Vergleich (Split)</span>
+              </button>
+            </div>
+
+            <!-- Viewport Tools -->
+            <div class="viewer-tool-toggles">
+              <button class="tool-toggle-btn active" id="toggleErrors" data-i18n-title="toggleErrorsTooltip" title="Fehler-Highlighting (rote Kanten) ein/aus">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                  <line x1="12" y1="9" x2="12" y2="13"></line>
+                  <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+              </button>
+              <button class="tool-toggle-btn" id="toggleWireframe" data-i18n-title="toggleWireframeTooltip" title="Drahtgittermodell (Wireframe) ein/aus">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                  <polyline points="2 17 12 22 22 17"></polyline>
+                  <polyline points="2 12 12 17 22 12"></polyline>
+                </svg>
+              </button>
+              <button class="tool-toggle-btn active" id="toggleBed" data-i18n-title="toggleBedTooltip" title="Druckbett-Gitter ein/aus">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="3" y1="9" x2="21" y2="9"></line>
+                  <line x1="3" y1="15" x2="21" y2="15"></line>
+                  <line x1="9" y1="3" x2="9" y2="21"></line>
+                  <line x1="15" y1="3" x2="15" y2="21"></line>
+                </svg>
+              </button>
+              <button class="tool-toggle-btn" id="btnResetCamera" data-i18n-title="resetCameraTooltip" title="Kamera zurücksetzen (Iso)">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="1 4 1 10 7 10"></polyline>
+                  <polyline points="23 20 23 14 17 14"></polyline>
+                  <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Bottom Watermark Indicator -->
+          <div class="viewer-watermark">
+            <span data-i18n="watermarkHint">Druckbett: 220 × 220 mm | Orbit: L-Klick | Pan: R-Klick | Zoom: Scroll</span>
+          </div>
+
+          <!-- Repair Hologram Scanner HUD Overlay & Laser Animation -->
+          <div class="repair-scan-overlay" id="repairScanOverlay">
+            <div class="scan-laser-line"></div>
+            <div class="scan-hud-card">
+              <div class="scan-hud-header">
+                <div class="scan-hud-spinner"></div>
+                <div>
+                  <h4 class="scan-hud-title" data-i18n="autoRepairSectionTitle">Auto-Repair Engine</h4>
+                  <p class="scan-hud-step" id="scanStepText">Analyzing Mesh Topology...</p>
+                </div>
+              </div>
+              <div class="scan-progress-track">
+                <div class="scan-progress-bar" id="scanProgressBar"></div>
+              </div>
+              <div class="scan-hud-metrics">
+                <span id="scanMetricsLabel">Ear-Clipping & Normals</span>
+                <span id="scanPercentText">0%</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- RIGHT SIDEBAR: Repair Actions, Material & Exporter -->
+      <section class="bento-card right-sidebar" aria-label="Reparatur- und Optimierungswerkzeuge">
+        <div class="bento-header">
+          <h2 class="bento-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+            </svg>
+            <span data-i18n="repairEngineTitle">Reparatur & Export</span>
+          </h2>
+        </div>
+
+        <div class="bento-content">
+          
+          <!-- Auto-Repair Main Action -->
+          <div class="tool-section">
+            <div class="tool-section-header">
+              <span data-i18n="autoRepairSectionTitle">Auto-Reparatur Engine</span>
+              <span class="status-pill good" style="font-size: 0.65rem;">Wasm / Manifold</span>
+            </div>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px;" data-i18n="autoRepairSectionDesc">
+              Repariert Topologiefehler mit planarer Ohr-Triangulation und scharfer Kantenschattierung.
+            </p>
+            
+            <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; font-size: 0.78rem; color: var(--text-secondary);">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="checkbox" id="optCloseHoles" checked style="accent-color: var(--accent-cyan);">
+                <span data-i18n="optCloseHoles">Löcher schließen (Planar Ear-Clipping)</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="checkbox" id="optFixNormals" checked style="accent-color: var(--accent-cyan);">
+                <span data-i18n="optFixNormals">Normalen nach außen ausrichten</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="checkbox" id="optWeldVerts" checked style="accent-color: var(--accent-cyan);">
+                <span data-i18n="optWeldVerts">Doppelte Vertices verschweißen</span>
+              </label>
+            </div>
+
+            <button class="btn btn-repair" id="btnAutoRepair">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+              </svg>
+              <span data-i18n="btnAutoRepair">Auto-Reparatur starten</span>
+            </button>
+          </div>
+
+          <!-- Bed Alignment & Positioning -->
+          <div class="tool-section">
+            <div class="tool-section-header">
+              <span data-i18n="positioningTitle">Druckbett-Ausrichtung & Position</span>
+            </div>
+            
+            <div class="btn-group-2" style="margin-bottom: 8px;">
+              <button class="btn btn-secondary" id="btnDropToBed" data-i18n-title="btnDropToBedTooltip" title="Setzt das Modell mit dem tiefsten Punkt exakt auf die Druckbett-Oberfläche">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 3v13M5 10l7 7 7-7M4 21h16"></path>
+                </svg>
+                <span data-i18n="btnDropToBed">Auf Bett absetzen</span>
+              </button>
+              <button class="btn btn-secondary" id="btnCenterBed" data-i18n-title="btnCenterBedTooltip" title="Zentriert das Modell exakt in der Mitte des Druckbetts">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="9"></circle>
+                  <line x1="12" y1="3" x2="12" y2="7"></line>
+                  <line x1="12" y1="17" x2="12" y2="21"></line>
+                  <line x1="3" y1="12" x2="7" y2="12"></line>
+                  <line x1="17" y1="12" x2="21" y2="12"></line>
+                </svg>
+                <span data-i18n="btnCenterBed">Mittig zentrieren</span>
+              </button>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 12px;">
+              <button class="btn btn-secondary" id="btnRotateX" style="padding: 6px 4px; font-size: 0.72rem;" data-i18n="btnRotateX" title="90° X">
+                ↻ 90° X
+              </button>
+              <button class="btn btn-secondary" id="btnRotateY" style="padding: 6px 4px; font-size: 0.72rem;" data-i18n="btnRotateY" title="90° Y">
+                ↻ 90° Y
+              </button>
+              <button class="btn btn-secondary" id="btnRotateZ" style="padding: 6px 4px; font-size: 0.72rem;" data-i18n="btnRotateZ" title="90° Z">
+                ↻ 90° Z
+              </button>
+            </div>
+
+            <!-- Polygon Decimation Slider -->
+            <div class="tool-section-header" style="margin-top: 8px;">
+              <span data-i18n="decimationTitle">Polygon-Dezimierung</span>
+            </div>
+            <div class="range-slider-group">
+              <div class="slider-header">
+                <span data-i18n="targetDensityLabel">Ziel-Dichte:</span>
+                <span class="slider-val" id="decimateValue">50%</span>
+              </div>
+              <input type="range" class="custom-range" id="decimateRatio" min="0.1" max="0.9" step="0.05" value="0.5">
+            </div>
+            <button class="btn btn-secondary" id="btnDecimate">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="8" y1="12" x2="16" y2="12"></line>
+              </svg>
+              <span data-i18n="btnDecimate">Polygone reduzieren</span>
+            </button>
+          </div>
+
+          <!-- Material & Weight Calculation -->
+          <div class="tool-section">
+            <div class="tool-section-header">
+              <span data-i18n="materialTitle">Material- & Gewichtsberechnung</span>
+            </div>
+            
+            <select class="select-input" id="materialSelect" aria-label="Filament Material auswählen">
+              <option value="PLA" selected>PLA (1,24 g/cm³)</option>
+              <option value="PETG">PETG (1,27 g/cm³)</option>
+              <option value="ABS">ABS (1,04 g/cm³)</option>
+              <option value="TPU">TPU (1,21 g/cm³)</option>
+            </select>
+
+            <div class="range-slider-group">
+              <div class="slider-header">
+                <span data-i18n="infillLabel">Infill (Fülldichte):</span>
+                <span class="slider-val" id="infillValue">20%</span>
+              </div>
+              <input type="range" class="custom-range" id="infillSlider" min="0" max="100" step="5" value="20">
+            </div>
+
+            <div class="metrics-grid" style="margin-bottom: 0;">
+              <div class="metric-box">
+                <span class="metric-label" data-i18n="estWeightLabel">Gewicht ca.</span>
+                <span class="metric-value" id="metricWeight" style="color: var(--accent-cyan);">0 g</span>
+              </div>
+              <div class="metric-box">
+                <span class="metric-label" data-i18n="filamentLengthLabel">Filament (1.75mm)</span>
+                <span class="metric-value" id="metricFilament">0 m</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Export Actions -->
+          <div class="tool-section" id="exportButtonGroup">
+            <div class="tool-section-header">
+              <span data-i18n="exportTitle">Modell Herunterladen</span>
+            </div>
+            <div class="btn-group-2" style="margin-bottom: 8px;">
+              <button class="btn btn-primary" id="btnExportBinarySTL">
+                <span data-i18n="btnExportBinarySTL">STL (Binary)</span>
+              </button>
+              <button class="btn btn-secondary" id="btnExport3MF">
+                <span data-i18n="btnExport3MF">3MF Paket</span>
+              </button>
+            </div>
+            <div class="btn-group-2">
+              <button class="btn btn-secondary" id="btnExportAsciiSTL">
+                <span data-i18n="btnExportAsciiSTL">STL (ASCII)</span>
+              </button>
+              <button class="btn btn-secondary" id="btnExportOBJ">
+                <span data-i18n="btnExportOBJ">Wavefront OBJ</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div>
+        <span data-i18n="footerDisclaimer">MeshDoc • 100% Local Zero-Upload Engine • No data sent to third parties.</span>
+      </div>
+      <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+        <a href="javascript:void(0)" onclick="window.openModal('modalWhatsNew', event)" data-open-modal="modalWhatsNew" data-i18n="linkWhatsNew">What's New (v1.4)</a> &bull;
+        <a href="https://github.com/svender3d/mesh-repair-3d" target="_blank" rel="noopener" data-i18n="linkGitHub">GitHub</a> &bull;
+        <a href="javascript:void(0)" onclick="window.openModal('modalImpressum', event)" data-open-modal="modalImpressum" data-i18n="linkImpressum">Legal Notice</a> &bull;
+        <a href="javascript:void(0)" onclick="window.openModal('modalDatenschutz', event)" data-open-modal="modalDatenschutz" data-i18n="linkDatenschutz">Privacy Policy</a> &bull;
+        <a href="javascript:void(0)" onclick="window.openModal('modalContact', event)" data-open-modal="modalContact" data-i18n="linkContact">Contact</a> &bull;
+        <a href="javascript:void(0)" id="btnOpenCookieSettings" onclick="window.openCookieBanner ? window.openCookieBanner(event) : (document.getElementById('cookieBanner').style.display='block')" data-i18n="linkCookieSettings">Cookie Settings</a>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- =========================================================================
+       MODAL DIALOGS (WHAT'S NEW, IMPRESSUM, DATENSCHUTZ, KONTAKT)
+       ========================================================================= -->
+
+  <!-- Modal: What's New & Release Notes -->
+  <div class="modal-backdrop" id="modalWhatsNew" role="dialog" aria-modal="true" aria-labelledby="whatsNewTitle">
+    <div class="modal-dialog" style="max-width: 740px;">
+      <div class="modal-header">
+        <h2 id="whatsNewTitle" data-i18n="modalWhatsNewTitle">✨ What's New & Updates</h2>
+        <button class="modal-close-btn" onclick="window.closeModal('modalWhatsNew')" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="changelog-timeline">
+
+          <!-- v1.4 (Latest) -->
+          <div class="changelog-card latest">
+            <div class="changelog-card-header">
+              <div class="changelog-card-title">
+                <span class="version-pill current">v1.4</span>
+                <span class="badge-status">Latest Release</span>
+                <strong style="color: var(--text-primary); font-size: 0.9rem;">Deep Force-Repair & Visual Hologram Scanner</strong>
+              </div>
+              <span class="changelog-date">August 2026</span>
+            </div>
+            <ul class="changelog-list">
+              <li>
+                <span>⚡</span>
+                <div><strong>Deep Multi-Pass Force-Repair:</strong> Automated removal of overlapping CAD duplicate faces, robust planar ear-clipping hole triangulation, and topological BFS surface normal orientation.</div>
+              </li>
+              <li>
+                <span>🔬</span>
+                <div><strong>Live 3D Laser Hologram Scanner:</strong> Animated scanning laser HUD with real-time multi-step progress feedback during mesh repair.</div>
+              </li>
+              <li>
+                <span>🛡️</span>
+                <div><strong>Hetzner Mailer Backend:</strong> Secure PHP contact backend (<code>contact.php</code>) with anti-spam honeypot, header injection protection, and SPF/DMARC compliant delivery to <code>info@svender3d.de</code>.</div>
+              </li>
+              <li>
+                <span>📐</span>
+                <div><strong>Zero-Offset Error Highlighting:</strong> Defect lines (Red/Yellow) are rigidly parented to the 3D model with zero spatial offset across all viewport modes.</div>
+              </li>
+            </ul>
+          </div>
+
+          <!-- v1.3 -->
+          <div class="changelog-card">
+            <div class="changelog-card-header">
+              <div class="changelog-card-title">
+                <span class="version-pill">v1.3</span>
+                <strong style="color: var(--text-primary); font-size: 0.9rem;">Interactive Diagnostics & Slicer Audit</strong>
+              </div>
+              <span class="changelog-date">August 2026</span>
+            </div>
+            <ul class="changelog-list">
+              <li>
+                <span>🔍</span>
+                <div><strong>Interactive Diagnostic Accordions:</strong> Clickable defect cards explaining exact root causes in 3D slicers and corresponding algorithmic solutions.</div>
+              </li>
+              <li>
+                <span>🌐</span>
+                <div><strong>Bilingual Architecture (EN / DE):</strong> Full localization across all UI elements, tooltips, diagnostics, and export dialogs.</div>
+              </li>
+              <li>
+                <span>🖨️</span>
+                <div><strong>Slicer-Readiness Assessment:</strong> Topological printability evaluation for Bambu Studio, OrcaSlicer, PrusaSlicer, and Ultimaker Cura.</div>
+              </li>
+            </ul>
+          </div>
+
+          <!-- v1.2 -->
+          <div class="changelog-card">
+            <div class="changelog-card-header">
+              <div class="changelog-card-title">
+                <span class="version-pill">v1.2</span>
+                <strong style="color: var(--text-primary); font-size: 0.9rem;">100% Zero-Upload & Self-Hosted Privacy</strong>
+              </div>
+              <span class="changelog-date">August 2026</span>
+            </div>
+            <ul class="changelog-list">
+              <li>
+                <span>🔒</span>
+                <div><strong>Zero-Upload Browser Memory:</strong> All mesh operations run 100% locally inside client browser memory (<code>Float32Array</code>) with no cloud uploads.</div>
+              </li>
+              <li>
+                <span>📦</span>
+                <div><strong>Self-Hosted Assets:</strong> Local WOFF2 typography (Inter & JetBrains Mono) and local Three.js modules with zero external Google CDN dependencies.</div>
+              </li>
+            </ul>
+          </div>
+
+          <!-- v1.1 -->
+          <div class="changelog-card">
+            <div class="changelog-card-header">
+              <div class="changelog-card-title">
+                <span class="version-pill">v1.1</span>
+                <strong style="color: var(--text-primary); font-size: 0.9rem;">Multi-Format Exporter & Filament Calculator</strong>
+              </div>
+              <span class="changelog-date">August 2026</span>
+            </div>
+            <ul class="changelog-list">
+              <li>
+                <span>💾</span>
+                <div><strong>Multi-Format Export:</strong> Fast download of repaired meshes as Binary STL, ASCII STL, 3MF Package, or Wavefront OBJ.</div>
+              </li>
+              <li>
+                <span>⚖️</span>
+                <div><strong>Material & Cost Estimator:</strong> Weight (g) and filament length (m) calculation for PLA, PETG, ABS, and TPU with customizable infill.</div>
+              </li>
+            </ul>
+          </div>
+
+          <!-- v1.0 -->
+          <div class="changelog-card">
+            <div class="changelog-card-header">
+              <div class="changelog-card-title">
+                <span class="version-pill">v1.0</span>
+                <strong style="color: var(--text-primary); font-size: 0.9rem;">Initial Release — 3D Mesh Inspection Engine</strong>
+              </div>
+              <span class="changelog-date">August 2026</span>
+            </div>
+            <ul class="changelog-list">
+              <li>
+                <span>🚀</span>
+                <div><strong>Core 3D Engine:</strong> WebGL Three.js viewport with PBR lighting, 220x220 mm build plate grid, drag-and-drop file parser, and OrbitControls.</div>
+              </li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Impressum / Legal Notice -->
+  <div class="modal-backdrop" id="modalImpressum" role="dialog" aria-modal="true" aria-labelledby="impressumTitle">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h2 id="impressumTitle" data-i18n="modalImpressumTitle">Impressum</h2>
+        <button class="modal-close-btn" onclick="window.closeModal('modalImpressum')" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body" id="modalImpressumBody">
+        <h3>Angaben gemäß § 5 DDG</h3>
+        <p>
+          <strong>Sven Harzer</strong><br>
+          Wriezenerstrasse 19<br>
+          13055 Berlin<br>
+          Deutschland
+        </p>
+
+        <h3>Vertreten durch:</h3>
+        <p>Sven Harzer</p>
+
+        <h3>Kontakt</h3>
+        <p>
+          Telefon: 0151-29675764<br>
+          E-Mail: <a href="mailto:info@svender3d.de" style="color: var(--accent-cyan);">info@svender3d.de</a><br>
+          Webseite: <a href="https://www.svender3d.de" target="_blank" rel="noopener" style="color: var(--accent-cyan);">www.svender3d.de</a>
+        </p>
+
+        <h3>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV / § 55 Abs. 2 RStV</h3>
+        <p>
+          Sven Harzer<br>
+          Wriezenerstrasse 19<br>
+          13055 Berlin
+        </p>
+
+        <h3>Streitschlichtung</h3>
+        <p>
+          Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: 
+          <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener" style="color: var(--accent-cyan);">https://ec.europa.eu/consumers/odr</a>.<br>
+          Unsere E-Mail-Adresse finden Sie oben im Impressum.<br>
+          Wir nehmen nicht an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teil und sind dazu auch nicht verpflichtet.
+        </p>
+
+        <h3>Haftung für Inhalte</h3>
+        <p>
+          Als Diensteanbieter sind wir gemäß § 7 Abs. 1 TMG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10 TMG sind wir als Diensteanbieter jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen. Verpflichtungen zur Entfernung oder Sperrung der Nutzung von Informationen nach den allgemeinen Gesetzen bleiben hiervon unberührt.
+        </p>
+
+        <h3>Haftung für Links</h3>
+        <p>
+          Unser Angebot enthält Links zu externen Websites Dritter, auf deren Inhalte wir keinen Einfluss haben. Deshalb können wir für diese fremden Inhalte auch keine Gewähr übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber der Seiten verantwortlich.
+        </p>
+
+        <h3>Urheberrecht</h3>
+        <p>
+          Die durch die Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht. Die Vervielfältigung, Bearbeitung, Verbreitung und jede Art der Verwertung außerhalb der Grenzen des Urheberrechtes bedürfen der schriftlichen Zustimmung des jeweiligen Autors bzw. Erstellers.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Datenschutzerklärung / Privacy Policy -->
+  <div class="modal-backdrop" id="modalDatenschutz" role="dialog" aria-modal="true" aria-labelledby="datenschutzTitle">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h2 id="datenschutzTitle" data-i18n="modalPrivacyTitle">Datenschutzerklärung</h2>
+        <button class="modal-close-btn" onclick="window.closeModal('modalDatenschutz')" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body" id="modalDatenschutzBody">
+        <h3>1. Datenschutz auf einen Blick</h3>
+        <h4>Allgemeine Hinweise</h4>
+        <p>
+          Die folgenden Hinweise geben einen einfachen Überblick darüber, was mit Ihren personenbezogenen Daten passiert, wenn Sie diese Website besuchen. Personenbezogene Daten sind alle Daten, mit denen Sie persönlich identifiziert werden können.
+        </p>
+        <h4>Zero-Upload 3D-Verarbeitung</h4>
+        <p>
+          Sämtliche von Ihnen ausgewählten oder im Browser abgelegten 3D-Dateien (STL, 3MF, OBJ) werden <strong>zu 100% lokal im Arbeitsspeicher Ihres Webbrowsers</strong> verarbeitet. Zu keinem Zeitpunkt werden 3D-Geometriedaten auf externe Server hochgeladen oder an Dritte übertragen.
+        </p>
+        <h4>Datenerfassung auf dieser Website</h4>
+        <p>
+          <strong>Wer ist verantwortlich für die Datenerfassung auf dieser Website?</strong><br>
+          Die Datenverarbeitung auf dieser Website erfolgt durch den Websitebetreiber. Dessen Kontaktdaten können Sie dem Abschnitt „Hinweis zur Verantwortlichen Stelle“ in dieser Datenschutzerklärung entnehmen.
+        </p>
+        <p>
+          <strong>Wie erfassen wir Ihre Daten?</strong><br>
+          Ihre Daten werden zum einen dadurch erhoben, dass Sie uns diese mitteilen (z. B. durch Eingabe in das sichere Kontaktformular). Andere Daten werden automatisch beim Besuch der Website durch unsere IT-Systeme erfasst (z. B. Internetbrowser, Betriebssystem oder Uhrzeit des Seitenaufrufs).
+        </p>
+        <p>
+          <strong>Wofür nutzen wir Ihre Daten?</strong><br>
+          Ein Teil der Daten wird erhoben, um eine fehlerfreie Bereitstellung der Website zu gewährleisten. Andere Daten können zur Bearbeitung Ihrer Kontaktanfragen verwendet werden.
+        </p>
+        <p>
+          <strong>Welche Rechte haben Sie bezüglich Ihrer Daten?</strong><br>
+          Sie haben jederzeit das Recht, unentgeltlich Auskunft über Herkunft, Empfänger und Zweck Ihrer gespeicherten personenbezogenen Daten zu erhalten. Sie haben außerdem ein Recht, die Berichtigung oder Löschung dieser Daten zu verlangen.
+        </p>
+
+        <h3>2. Hosting</h3>
+        <p>
+          Wir hosten die Inhalte unserer Website bei folgendem Anbieter:<br>
+          <strong>Hetzner Online GmbH</strong>, Industriestr. 25, 91710 Gunzenhausen, Deutschland.<br>
+          Details entnehmen Sie der Datenschutzerklärung von Hetzner: 
+          <a href="https://www.hetzner.com/de/legal/privacy-policy/" target="_blank" rel="noopener" style="color: var(--accent-cyan);">https://www.hetzner.com/de/legal/privacy-policy/</a>.<br>
+          Die Verwendung von Hetzner erfolgt auf Grundlage von Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an einer zuverlässigen und sicheren Bereitstellung unseres Online-Angebots).
+        </p>
+        <h4>Auftragsverarbeitung</h4>
+        <p>
+          Wir haben einen Vertrag über Auftragsverarbeitung (AVV) mit der Hetzner Online GmbH geschlossen. Hierbei handelt es sich um einen datenschutzrechtlich vorgeschriebenen Vertrag, der gewährleistet, dass Hetzner die personenbezogenen Daten unserer Websitebesucher nur nach unseren Weisungen und unter Einhaltung der DSGVO verarbeitet.
+        </p>
+
+        <h3>3. Allgemeine Hinweise und Pflichtinformationen</h3>
+        <h4>Hinweis zur verantwortlichen Stelle</h4>
+        <p>
+          Die verantwortliche Stelle für die Datenverarbeitung auf dieser Website ist:<br>
+          <strong>Sven Harzer</strong><br>
+          Wriezenerstrasse 19<br>
+          13055 Berlin<br>
+          Telefon: 0151-29675764<br>
+          E-Mail: <a href="mailto:info@svender3d.de" style="color: var(--accent-cyan);">info@svender3d.de</a>
+        </p>
+        <h4>Speicherdauer</h4>
+        <p>
+          Soweit innerhalb dieser Datenschutzerklärung keine speziellere Speicherdauer genannt wurde, verbleiben Ihre personenbezogenen Daten bei uns, bis der Zweck für die Datenverarbeitung entfällt. Wenn Sie ein berechtigtes Löschersuchen geltend machen oder eine Einwilligung zur Datenverarbeitung widerrufen, werden Ihre Daten gelöscht.
+        </p>
+        <h4>Rechtsgrundlagen der Datenverarbeitung</h4>
+        <p>
+          Die Verarbeitung erfolgt je nach Zweck auf Basis von Art. 6 Abs. 1 lit. a DSGVO (Einwilligung), Art. 6 Abs. 1 lit. b DSGVO (Vertrag/Vorvertrag), Art. 6 Abs. 1 lit. c DSGVO (gesetzliche Pflicht) oder Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse) sowie § 25 Abs. 1 TDDDG.
+        </p>
+        <h4>Widerruf Ihrer Einwilligung zur Datenverarbeitung</h4>
+        <p>
+          Viele Datenverarbeitungsvorgänge sind nur mit Ihrer ausdrücklichen Einwilligung möglich. Sie können eine bereits erteilte Einwilligung jederzeit widerrufen.
+        </p>
+        <h4>Beschwerderecht bei der zuständigen Aufsichtsbehörde</h4>
+        <p>
+          Im Falle von Verstößen gegen die DSGVO steht den Betroffenen ein Beschwerderecht bei einer Aufsichtsbehörde zu.
+        </p>
+        <h4>SSL- bzw. TLS-Verschlüsselung</h4>
+        <p>
+          Diese Seite nutzt aus Sicherheitsgründen und zum Schutz der Übertragung vertraulicher Inhalte eine SSL- bzw. TLS-Verschlüsselung. Eine verschlüsselte Verbindung erkennen Sie an der Adresszeile des Browsers („https://“).
+        </p>
+
+        <h3>4. Datenerfassung auf dieser Website</h3>
+        <h4>Lokale Speicherung & technisch notwendige Cookies</h4>
+        <p>
+          Wir setzen keine Marketing- oder Tracking-Cookies ein. Zur Speicherung Ihrer Spracheinstellung und Privatsphäre-Auswahl wird lediglich ein lokaler Eintrag (localStorage) in Ihrem Browser hinterlegt (Art. 6 Abs. 1 lit. f DSGVO).
+        </p>
+        <h4>Kontaktformular</h4>
+        <p>
+          Wenn Sie uns per Kontaktformular Anfragen zukommen lassen, werden Ihre Angaben aus dem Anfrageformular inklusive der von Ihnen dort angegebenen Kontaktdaten zwecks Bearbeitung der Anfrage und für den Fall von Anschlussfragen bei uns gespeichert. Diese Daten geben wir nicht ohne Ihre Einwilligung weiter (Art. 6 Abs. 1 lit. b bzw. lit. f DSGVO).
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Sicheres Kontaktformular / Contact Form -->
+  <div class="modal-backdrop" id="modalContact" role="dialog" aria-modal="true" aria-labelledby="contactTitle">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h2 id="contactTitle" data-i18n="modalContactTitle">Contact Us</h2>
+        <button class="modal-close-btn" onclick="window.closeModal('modalContact')" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="secureContactForm" novalidate>
+          <!-- Anti-Spam Honeypot Field -->
+          <input type="text" name="contact_hp" id="contact_hp" class="form-hp" tabindex="-1" autocomplete="off">
+
+          <div class="form-group">
+            <label class="form-label" for="contactName" data-i18n="labelName">Your Name *</label>
+            <input type="text" id="contactName" class="form-control" data-i18n-placeholder="placeholderName" placeholder="John Doe" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="contactEmail" data-i18n="labelEmail">Your Email Address *</label>
+            <input type="email" id="contactEmail" class="form-control" data-i18n-placeholder="placeholderEmail" placeholder="name@example.com" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="contactMessage" data-i18n="labelMessage">Your Message *</label>
+            <textarea id="contactMessage" class="form-control" data-i18n-placeholder="placeholderMessage" placeholder="How can we help you?" required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 0.78rem; color: var(--text-secondary); cursor: pointer;">
+              <input type="checkbox" id="contactPrivacy" required style="accent-color: var(--accent-cyan); margin-top: 2px;">
+              <span data-i18n="checkboxPrivacy">I agree to the processing of my data according to the privacy policy.</span>
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="margin-top: 8px;">
+            <span data-i18n="btnSendMessage">Send Message</span>
+          </button>
+
+          <div class="form-security-note">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <span data-i18n="spamProtectionNote">Spam protection & client-side input validation active</span>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       GDPR / DSGVO COOKIE CONSENT BANNER
+       ========================================================================= -->
+  <aside class="cookie-banner-overlay" id="cookieBanner" aria-label="Privacy & Cookie Preferences">
+    <div class="cookie-banner-header">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--accent-cyan)" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M12 8v4M12 16h.01"></path>
+      </svg>
+      <h3 data-i18n="cookieTitle">Privacy & Cookie Preferences</h3>
+    </div>
+    <div class="cookie-banner-body">
+      <span data-i18n="cookieBody">This application processes 3D files 100% locally in your browser (Zero-Upload). We only store strictly necessary technical preferences. No tracking cookies, no third-party CDNs.</span>
+      <a href="javascript:void(0)" onclick="window.openModal('modalDatenschutz', event)" data-open-modal="modalDatenschutz" data-i18n="cookieLearnMore">Privacy Policy</a>.
+    </div>
+    <div class="cookie-banner-actions">
+      <button type="button" class="cookie-btn cookie-btn-primary" id="btnCookieAcceptAll" onclick="if(window.acceptCookies){window.acceptCookies();}else{try{localStorage.setItem('mesh3d_cookie_consent_v1','all');}catch(e){}document.getElementById('cookieBanner').style.setProperty('display','none','important');}" data-i18n="cookieAcceptAll">
+        Accept All
+      </button>
+      <button type="button" class="cookie-btn cookie-btn-secondary" id="btnCookieEssentialOnly" onclick="if(window.essentialCookies){window.essentialCookies();}else{try{localStorage.setItem('mesh3d_cookie_consent_v1','essential');}catch(e){}document.getElementById('cookieBanner').style.setProperty('display','none','important');}" data-i18n="cookieEssentialOnly">
+        Essential Only
+      </button>
+    </div>
+  </aside>
+
+  <!-- Instant Synchronous Auto-Show for Cookie Banner on First Visit -->
+  <script>
+    (function() {
+      try {
+        if (!localStorage.getItem('mesh3d_cookie_consent_v1')) {
+          var b = document.getElementById('cookieBanner');
+          if (b) {
+            b.style.setProperty('display', 'block', 'important');
+            b.classList.add('show');
+          }
+        }
+      } catch(e) {}
+    })();
+  </script>
+
+  <!-- Toast Notification System -->
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+  <!-- App Main Entry Points (ES Modules) -->
+  <script type="module" src="assets/js/i18n.js"></script>
+  <script type="module" src="assets/js/cookie-consent.js"></script>
+  <script type="module" src="assets/js/legal-modals.js"></script>
+  <script type="module" src="assets/js/contact-form.js"></script>
+  <script type="module" src="assets/js/app.js"></script>
+</body>
+</html>
