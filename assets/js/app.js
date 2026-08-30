@@ -217,6 +217,7 @@ class App {
   setupStickyRepairBar() {
     const mainBtn = document.getElementById('btnAutoRepair');
     const stickyBtn = document.getElementById('btnStickyAutoRepair');
+    const footer = document.querySelector('footer.app-footer');
 
     if (!mainBtn || !stickyBtn) return;
 
@@ -227,9 +228,18 @@ class App {
 
     // Scroll & Intersection listener
     const updateStickyVisibility = () => {
-      const rect = mainBtn.getBoundingClientRect();
-      // Show when the main repair button scrolls above viewport or is out of sight
-      if (rect.bottom < 40) {
+      const mainRect = mainBtn.getBoundingClientRect();
+      const isPastMain = mainRect.bottom < 40;
+
+      // Check if footer is visible or near the bottom of viewport
+      let isNearFooter = false;
+      if (footer) {
+        const footerRect = footer.getBoundingClientRect();
+        isNearFooter = footerRect.top < (window.innerHeight - 30);
+      }
+
+      // Only show if scrolled past the main button and NOT in the footer area
+      if (isPastMain && !isNearFooter) {
         stickyBtn.classList.add('visible');
       } else {
         stickyBtn.classList.remove('visible');

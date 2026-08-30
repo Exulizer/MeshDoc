@@ -104,6 +104,14 @@ body {
   color: var(--text-muted);
 }
 
+.hero-description {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-top: 3px;
+  max-width: 660px;
+}
+
 .privacy-badge {
   display: inline-flex;
   align-items: center;

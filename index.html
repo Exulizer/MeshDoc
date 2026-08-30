@@ -7,8 +7,7 @@
   
   <!-- Primary Meta Tags -->
   <title>MeshDoc – Kostenloses Online STL Repair Tool | Svender3D</title>
-  <meta name="title" content="MeshDoc – Kostenloses Online STL Repair Tool | Svender3D">
-  <meta name="description" content="Repariere fehlerhafte STL-Dateien schnell & kostenlos im Browser mit MeshDoc. Automatische Korrektur von Non-Manifold Kanten, Löchern, Normalen und entarteten Dreiecken.">
+  <meta name="description" content="Repariere fehlerhafte STL-Dateien kostenlos im Browser – automatische Korrektur von Löchern, Non-Manifold-Kanten &amp; invertierten Normalen für 3D-Druck.">
   <meta name="keywords" content="meshdoc, stl repair, stl reparieren, svender3d, non manifold fix, stl analyse, mesh repair online, 3d druck stl reparieren, inverted normals, stl hole closer, orca slicer stl fix, bambu studio non manifold">
   <meta name="author" content="Svender3D">
   <meta name="robots" content="index, follow">
@@ -81,26 +80,58 @@
         "mainEntity": [
           {
             "@type": "Question",
-            "name": "Was macht das Tool MeshDoc?",
+            "name": "Was bedeutet Non-Manifold bei einer STL-Datei?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "MeshDoc analysiert STL-Dateien auf typische 3D-Druck-Fehler wie offene Kanten, Löcher, Non-Manifold-Geometrien und invertierte Normalen und repariert diese automatisiert für Slicer wie Orca Slicer, Cura oder PrusaSlicer."
+              "text": "Ein Non-Manifold-Fehler beschreibt eine geometrisch ungültige oder nicht wasserdichte Mesh-Struktur (z. B. Kanten, die von drei oder mehr Flächen geteilt werden, oder sich selbst schneidende Wände). Slicer können daraus kein eindeutiges Innen- und Außenvolumen berechnen, was zu Druckfehlern führt."
             }
           },
           {
             "@type": "Question",
-            "name": "Werden meine 3D-Modelle gespeichert?",
+            "name": "Warum zeigt mein 3D-Slicer (Bambu Studio, OrcaSlicer, PrusaSlicer, Cura) Mesh-Fehler an?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "MeshDoc verarbeitet Dateien temporär und sicher. Nach der Analyse und dem Download werden die Modelldaten nicht dauerhaft gespeichert."
+              "text": "Viele CAD-Programme und 3D-Modellierer exportieren beim Konvertieren in Polygone offene Kanten, invertierte Flächennormalen oder T-Junctions. Moderne Slicer prüfen die Wasserdichtigkeit streng und warnen vor Instabilitäten und Lücken im Werkzeugpfad."
             }
           },
           {
             "@type": "Question",
-            "name": "Welche Dateiformate unterstützt MeshDoc?",
+            "name": "Was ist der Unterschied zwischen STL, OBJ und 3MF?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "MeshDoc unterstützt sowohl binäre als auch ASCII-basierte .stl Dateien."
+              "text": "STL ist das traditionelle Standardformat für Dreiecksnetze ohne Farb- oder Einheiten-Informationen. OBJ unterstützt zusätzliche Textur- und Geometriedaten. 3MF ist das moderne, kompakte XML-Container-Format, das Netze verlustfrei komprimiert, Metadaten speichert und von modernen Slicern bevorzugt wird."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Werden meine hochgeladenen 3D-Modelle auf einem Server gespeichert?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Nein. MeshDoc arbeitet nach dem strikten Zero-Upload-Prinzip: Alle Analysen, Triangulierungen und Reparaturen laufen zu 100% lokal im Arbeitsspeicher deines Webbrowsers ab. Keine 3D-Datei verlässt dein Gerät."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Welche Dateigröße wird maximal unterstützt?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Da die Verarbeitung direkt im Browser über hardwarebeschleunigte Typ-Arrays (Float32Array) erfolgt, gibt es kein künstliches Server-Limit. Dateien bis ca. 150–200 MB bzw. über 2.000.000 Polygone lassen sich auf modernen Rechnern problemlos verarbeiten."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Funktioniert MeshDoc auch auf Smartphones und Tablets?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Ja. MeshDoc ist vollständig responsiv aufgebaut und unterstützt mobile WebGL-Renderer auf iOS (Safari) und Android (Chrome/Firefox), sodass du 3D-Dateien auch unterwegs auf dem Handy oder Tablet prüfen und reparieren kannst."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Welche Dateiformate können repariert und exportiert werden?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Du kannst STL (sowohl binär als auch ASCII), Wavefront OBJ und 3MF importieren. Nach der Reparatur kannst du das saubere Modell als Binary-STL, ASCII-STL, 3MF-Paket oder OBJ-Datei herunterladen."
             }
           }
         ]
@@ -176,8 +207,9 @@
           </a>
         </nav>
         <div class="hero-content">
-          <h1 data-i18n="appTitle">MeshDoc – STL Repair & Mesh Diagnose Tool</h1>
+          <h1 data-i18n="appTitle">MeshDoc – STL Repair &amp; Mesh Diagnose Tool</h1>
           <p class="subtitle" data-i18n="appSubtitle">Fehlerhafte STL-Dateien analysieren, reparieren und slicerfertig exportieren.</p>
+          <p class="hero-description" data-i18n="appDescription">MeshDoc ist ein spezialisiertes Browser-Werkzeug für 3D-Druck-Anwender zur schnellen Reparatur defekter STL-, OBJ- und 3MF-Meshes. Die Anwendung schließt offene Netzlöcher, korrigiert Non-Manifold-Kanten und richtet invertierte Normalen automatisch für fehlerfreies Slicing aus. Alle Rechenschritte erfolgen zu 100% lokal auf deinem Gerät ohne Cloud-Upload.</p>
         </div>
       </div>
 
@@ -757,31 +789,31 @@
         <div class="diagnostics-grid">
           <article class="diag-item">
             <h3 data-i18n="diagNakedEdgesTitle">Naked Edges (Offene Außenkanten)</h3>
-            <p data-i18n="diagNakedEdgesDesc">Erkennt und schließt Kanten, die nicht vollständig mit angrenzenden Faces verbunden sind.</p>
+            <p data-i18n="diagNakedEdgesDesc">Erkennt und schließt offene Netzkanten. Beim 3D-Druck führen offene Kanten dazu, dass der Slicer das Modell nicht als geschlossenen Volumenkörper erkennt und dadurch Schichten auslässt oder Wände fehlerhaft druckt.</p>
           </article>
           <article class="diag-item">
-            <h3 data-i18n="diagHolesTitle">Planar & Non-Planar Holes (Löcher im Mesh)</h3>
-            <p data-i18n="diagHolesDesc">Füllt ebene und komplexe dreidimensionale Lücken in der Netzhülle wasserdicht auf.</p>
+            <h3 data-i18n="diagHolesTitle">Planar &amp; Non-Planar Holes (Löcher im Mesh)</h3>
+            <p data-i18n="diagHolesDesc">Füllt ebene und komplexe dreidimensionale Lücken in der Netzhülle wasserdicht auf. Durch Löcher dringt virtueller Leerraum in das Modell ein, wodurch Slicer kein Infill generieren und der Druck instabil wird oder fehlschlägt.</p>
           </article>
           <article class="diag-item">
             <h3 data-i18n="diagNonManifoldTitle">Non-Manifold Edges (Ungültige Kantenverbindungen)</h3>
-            <p data-i18n="diagNonManifoldDesc">Bereinigt Kanten, an denen mehr als zwei Dreiecksflächen anliegen, für sauberes Slicen.</p>
+            <p data-i18n="diagNonManifoldDesc">Bereinigt Kanten, an denen mehr als zwei Dreiecksflächen anliegen. Non-Manifold-Strukturen verwirren den Schicht-Algorithmus des Slicers, was zu doppelten Druckbahnen, Filament-Knubbeln oder Schichtabrissen führt.</p>
           </article>
           <article class="diag-item">
             <h3 data-i18n="diagInvertedTitle">Inverted Normals (Verdrehte Flächenausrichtung)</h3>
-            <p data-i18n="diagInvertedDesc">Richtet nach innen zeigende Flächennormalen automatisch nach außen aus.</p>
+            <p data-i18n="diagInvertedDesc">Richtet nach innen zeigende Flächennormalen automatisch nach außen aus. Invertierte Normalen lassen den Slicer annehmen, die Außenwand liege im Modellinneren, wodurch Außenwände gar nicht oder spiegelverkehrt gedruckt werden.</p>
           </article>
           <article class="diag-item">
             <h3 data-i18n="diagDuplicateTitle">Duplicate Faces (Doppelte Dreiecke)</h3>
-            <p data-i18n="diagDuplicateDesc">Entfernt identische, übereinanderliegende Flächen zur Reduzierung von Artefakten.</p>
+            <p data-i18n="diagDuplicateDesc">Entfernt identische, übereinanderliegende Dreiecke aus fehlerhaften CAD-Exporten. Doppelte Flächen führen im Slicer zu lokaler Überextrusion und unschönen Artefakten auf den Oberflächen des Drucks.</p>
           </article>
           <article class="diag-item">
             <h3 data-i18n="diagDegenerateTitle">Degenerate Faces (Null-Flächen)</h3>
-            <p data-i18n="diagDegenerateDesc">Löscht entartete Dreiecke ohne Flächeninhalt oder mit kollinearen Punkten.</p>
+            <p data-i18n="diagDegenerateDesc">Löscht entartete Dreiecke ohne Flächeninhalt oder mit kollinearen Punkten. Null-Flächen können im Slicer mathematische Fehler auslösen und die Schichtberechnung verlangsamen oder zum Absturz bringen.</p>
           </article>
           <article class="diag-item">
             <h3 data-i18n="diagDisjointTitle">Disjoint Shells (Isolierte Teilnetze)</h3>
-            <p data-i18n="diagDisjointDesc">Identifiziert getrennte Körperfragmente und verbindet oder isoliert diese konsistent.</p>
+            <p data-i18n="diagDisjointDesc">Identifiziert getrennte Körperfragmente und verbindet oder bereinigt diese. Unverbundene, in der Luft schwebende Teilnetze führen beim 3D-Druck zu Filament-Fäden (Spaghetti-Effekt) und Fehldrucken.</p>
           </article>
         </div>
       </section>
@@ -801,15 +833,31 @@
         <div class="faq-accordion">
           <details>
             <summary><strong data-i18n="faqQ1">Was bedeutet Non-Manifold bei einer STL-Datei?</strong></summary>
-            <p data-i18n="faqA1">Ein Non-Manifold-Fehler beschreibt eine geometrisch unmögliche oder nicht wasserdichte Mesh-Struktur (z. B. geteilte Kanten zwischen mehr als zwei Flächen). Slicer können daraus keine eindeutigen Innen- und Außenbereiche berechnen.</p>
+            <p data-i18n="faqA1">Ein Non-Manifold-Fehler beschreibt eine geometrisch ungültige oder nicht wasserdichte Mesh-Struktur (z. B. Kanten, die von drei oder mehr Flächen geteilt werden, oder sich selbst schneidende Wände). Slicer können daraus kein eindeutiges Innen- und Außenvolumen berechnen, was zu Druckfehlern führt.</p>
           </details>
           <details>
-            <summary><strong data-i18n="faqQ2">Werden meine hochgeladenen 3D-Modelle gespeichert?</strong></summary>
-            <p data-i18n="faqA2">Nein. MeshDoc verarbeitet 3D-Dateien temporär und 100% lokal im Browser (Zero-Upload). Daten werden nicht dauerhaft oder auf externen Servern gespeichert.</p>
+            <summary><strong data-i18n="faqQ2">Warum zeigt mein 3D-Slicer (Bambu Studio, OrcaSlicer, PrusaSlicer, Cura) Mesh-Fehler an?</strong></summary>
+            <p data-i18n="faqA2">Viele CAD-Programme und 3D-Modellierer exportieren beim Konvertieren in Polygone offene Kanten, invertierte Flächennormalen oder T-Junctions. Moderne Slicer prüfen die Wasserdichtigkeit streng und warnen vor Instabilitäten und Lücken im Werkzeugpfad.</p>
           </details>
           <details>
-            <summary><strong data-i18n="faqQ3">Welche Dateiformate unterstützt MeshDoc?</strong></summary>
-            <p data-i18n="faqA3">Es werden sowohl binäre als auch ASCII-basierte .stl-Dateien sowie .obj und .3mf unterstützt.</p>
+            <summary><strong data-i18n="faqQ3">Was ist der Unterschied zwischen STL, OBJ und 3MF?</strong></summary>
+            <p data-i18n="faqA3">STL ist das traditionelle Standardformat für Dreiecksnetze ohne Farb- oder Einheiten-Informationen. OBJ unterstützt zusätzliche Textur- und Geometriedaten. 3MF ist das moderne, kompakte XML-Container-Format, das Netze verlustfrei komprimiert, Metadaten speichert und von modernen Slicern bevorzugt wird.</p>
+          </details>
+          <details>
+            <summary><strong data-i18n="faqQ4">Werden meine hochgeladenen 3D-Modelle auf einem Server gespeichert?</strong></summary>
+            <p data-i18n="faqA4">Nein. MeshDoc arbeitet nach dem strikten Zero-Upload-Prinzip: Alle Analysen, Triangulierungen und Reparaturen laufen zu 100% lokal im Arbeitsspeicher deines Webbrowsers ab. Keine 3D-Datei verlässt dein Gerät.</p>
+          </details>
+          <details>
+            <summary><strong data-i18n="faqQ5">Welche Dateigröße wird maximal unterstützt?</strong></summary>
+            <p data-i18n="faqA5">Da die Verarbeitung direkt im Browser über hardwarebeschleunigte Typ-Arrays (Float32Array) erfolgt, gibt es kein künstliches Server-Limit. Dateien bis ca. 150–200 MB bzw. über 2.000.000 Polygone lassen sich auf modernen Rechnern problemlos verarbeiten.</p>
+          </details>
+          <details>
+            <summary><strong data-i18n="faqQ6">Funktioniert MeshDoc auch auf Smartphones und Tablets?</strong></summary>
+            <p data-i18n="faqA6">Ja. MeshDoc ist vollständig responsiv aufgebaut und unterstützt mobile WebGL-Renderer auf iOS (Safari) und Android (Chrome/Firefox), sodass du 3D-Dateien auch unterwegs auf dem Handy oder Tablet prüfen und reparieren kannst.</p>
+          </details>
+          <details>
+            <summary><strong data-i18n="faqQ7">Welche Dateiformate können repariert und exportiert werden?</strong></summary>
+            <p data-i18n="faqA7">Du kannst STL (sowohl binär als auch ASCII), Wavefront OBJ und 3MF importieren. Nach der Reparatur kannst du das saubere Modell als Binary-STL, ASCII-STL, 3MF-Paket oder OBJ-Datei herunterladen.</p>
           </details>
         </div>
       </section>
