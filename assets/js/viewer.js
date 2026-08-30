@@ -57,6 +57,10 @@ export class Viewport3D {
       }),
     };
 
+    this.needsRender = true;
+    this.isInteracting = false;
+    this.dampingFrames = 0;
+
     this.init();
   }
 
@@ -72,23 +76,37 @@ export class Viewport3D {
     this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 5000);
     this.camera.position.set(150, 150, 150);
 
-    // Renderer
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+    // Ultra-optimized WebGL Renderer (No heavy shadow maps, capped pixel ratio to prevent GPU stress)
+    this.renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: false,
+      powerPreference: 'default',
+      precision: 'mediump',
+    });
+    this.renderer.setClearColor(0x0a0d14, 1);
     this.renderer.setSize(width, height);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    this.renderer.shadowMap.enabled = false; // Disable heavy shadow maps (eliminates GPU overheating & screen flickering)
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.1;
+    this.renderer.toneMappingExposure = 1.05;
+    this.renderer.domElement.id = 'viewportCanvas';
+    this.renderer.domElement.style.background = '#0a0d14';
 
     this.container.appendChild(this.renderer.domElement);
 
-    // Orbit Controls
+    // Orbit Controls with Demand-Driven Change Listeners
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.08;
     this.controls.maxDistance = 3000;
     this.controls.minDistance = 2;
+
+    this.controls.addEventListener('change', () => this.requestRender());
+    this.controls.addEventListener('start', () => { this.isInteracting = true; });
+    this.controls.addEventListener('end', () => {
+      this.isInteracting = false;
+      this.dampingFrames = 30; // Allow damping to settle smoothly
+    });
 
     // Lights
     this.setupLighting();
@@ -99,27 +117,35 @@ export class Viewport3D {
     // Error lines group
     this.scene.add(this.errorLinesGroup);
 
-    // Resize listener
-    window.addEventListener('resize', () => this.onResize());
+    // Resize listeners with debouncing
+    this.resizeTimeout = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(this.resizeTimeout);
+      this.resizeTimeout = setTimeout(() => this.onResize(), 60);
+    });
 
-    // Animation Loop
+    if (window.ResizeObserver && this.container) {
+      this.resizeObserver = new ResizeObserver(() => {
+        clearTimeout(this.resizeTimeout);
+        this.resizeTimeout = setTimeout(() => this.onResize(), 60);
+      });
+      this.resizeObserver.observe(this.container);
+    }
+
+    // Animation Loop (Demand-driven: 0% GPU load when idle)
     this.animate = this.animate.bind(this);
     requestAnimationFrame(this.animate);
   }
 
   setupLighting() {
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
     this.scene.add(ambientLight);
 
-    const hemiLight = new THREE.HemisphereLight(0xdbeafe, 0x1e293b, 0.5);
+    const hemiLight = new THREE.HemisphereLight(0xdbeafe, 0x1e293b, 0.6);
     this.scene.add(hemiLight);
 
-    const keyLight = new THREE.DirectionalLight(0xffffff, 0.9);
+    const keyLight = new THREE.DirectionalLight(0xffffff, 0.85);
     keyLight.position.set(120, 200, 150);
-    keyLight.castShadow = true;
-    keyLight.shadow.mapSize.width = 2048;
-    keyLight.shadow.mapSize.height = 2048;
-    keyLight.shadow.bias = -0.0001;
     this.scene.add(keyLight);
 
     const fillLight = new THREE.DirectionalLight(0x38bdf8, 0.4);
@@ -158,19 +184,38 @@ export class Viewport3D {
     this.scene.add(bedGroup);
   }
 
+  requestRender() {
+    this.needsRender = true;
+  }
+
   animate() {
     requestAnimationFrame(this.animate);
-    this.controls.update();
-    this.renderer.render(this.scene, this.camera);
+
+    let requireRender = this.needsRender || this.isInteracting;
+
+    if (this.controls.enableDamping) {
+      const updated = this.controls.update();
+      if (updated || this.dampingFrames > 0) {
+        requireRender = true;
+        if (this.dampingFrames > 0) this.dampingFrames--;
+      }
+    }
+
+    if (requireRender) {
+      this.renderer.render(this.scene, this.camera);
+      this.needsRender = false;
+    }
   }
 
   onResize() {
     if (!this.container || !this.renderer || !this.camera) return;
     const width = this.container.clientWidth;
     const height = this.container.clientHeight;
+    if (width === 0 || height === 0) return;
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height);
+    this.requestRender();
   }
 
   /**
@@ -185,32 +230,34 @@ export class Viewport3D {
     }
 
     this.originalMesh = new THREE.Mesh(geometry, this.materials.original);
-    this.originalMesh.castShadow = true;
-    this.originalMesh.receiveShadow = true;
     this.errorLinesGroup.position.set(0, 0, 0);
     this.originalMesh.add(this.errorLinesGroup);
     this.scene.add(this.originalMesh);
 
     this.switchViewMode('original');
     this.fitCameraToMesh(this.originalMesh);
+    this.requestRender();
   }
 
   /**
    * Set the repaired geometry
    * @param {THREE.BufferGeometry} geometry
+   * @param {boolean} [isSmooth=false]
    */
-  setRepairedGeometry(geometry) {
+  setRepairedGeometry(geometry, isSmooth = false) {
     if (this.repairedMesh) {
       this.scene.remove(this.repairedMesh);
       this.repairedMesh.geometry.dispose();
     }
 
+    this.materials.repaired.flatShading = !isSmooth;
+    this.materials.repaired.needsUpdate = true;
+
     this.repairedMesh = new THREE.Mesh(geometry, this.materials.repaired);
-    this.repairedMesh.castShadow = true;
-    this.repairedMesh.receiveShadow = true;
     this.scene.add(this.repairedMesh);
 
     this.switchViewMode('repaired');
+    this.requestRender();
   }
 
   /**
@@ -220,7 +267,10 @@ export class Viewport3D {
   setErrorHighlights(errorLines) {
     this.clearErrorHighlights();
     this.errorLinesGroup.position.set(0, 0, 0);
-    if (!this.showErrors || !errorLines) return;
+    if (!this.showErrors || !errorLines) {
+      this.requestRender();
+      return;
+    }
 
     if (errorLines.openEdges && errorLines.openEdges.length > 0) {
       const openGeo = new THREE.BufferGeometry();
@@ -241,6 +291,8 @@ export class Viewport3D {
     if (this.originalMesh && this.errorLinesGroup.parent !== this.originalMesh) {
       this.originalMesh.add(this.errorLinesGroup);
     }
+
+    this.requestRender();
   }
 
   clearErrorHighlights() {
@@ -249,6 +301,7 @@ export class Viewport3D {
       this.errorLinesGroup.remove(child);
       if (child.geometry) child.geometry.dispose();
     }
+    this.requestRender();
   }
 
   /**
@@ -287,6 +340,8 @@ export class Viewport3D {
       this.repairedMesh.position.x = offset;
       this.errorLinesGroup.visible = this.showErrors;
     }
+
+    this.requestRender();
   }
 
   /**
@@ -296,6 +351,7 @@ export class Viewport3D {
     this.showWireframe = enabled !== undefined ? enabled : !this.showWireframe;
     this.materials.original.wireframe = this.showWireframe;
     this.materials.repaired.wireframe = this.showWireframe;
+    this.requestRender();
   }
 
   /**
@@ -304,6 +360,7 @@ export class Viewport3D {
   toggleBed(enabled) {
     this.showBed = enabled !== undefined ? enabled : !this.showBed;
     if (this.bedGrid) this.bedGrid.visible = this.showBed;
+    this.requestRender();
   }
 
   /**
@@ -312,6 +369,7 @@ export class Viewport3D {
   toggleErrors(enabled) {
     this.showErrors = enabled !== undefined ? enabled : !this.showErrors;
     this.errorLinesGroup.visible = this.showErrors && this.activeMeshType !== 'repaired';
+    this.requestRender();
   }
 
   /**
@@ -335,6 +393,7 @@ export class Viewport3D {
     this.controls.target.set(center.x, Math.max(0, center.y * 0.5), center.z);
     this.camera.lookAt(this.controls.target);
     this.controls.update();
+    this.requestRender();
   }
 
   /**
@@ -361,5 +420,6 @@ export class Viewport3D {
     }
     this.camera.lookAt(target);
     this.controls.update();
+    this.requestRender();
   }
 }

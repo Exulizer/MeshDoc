@@ -5,27 +5,107 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MeshDoc | 3D Print Mesh Diagnostics & Auto-Repair</title>
   
-  <!-- SEO & Meta Tags -->
-  <meta name="description" content="MeshDoc — 100% Client-Side 3D Mesh Diagnostics & Automated Repair for STL, 3MF and OBJ. Watertight capping, normal alignment, polygon reduction without server uploads.">
-  <meta name="keywords" content="MeshDoc, 3D Print, STL repair, 3MF repair, Non-Manifold, Watertight, Mesh Analyzer, 3D Print Tool, Three.js, Manifold, Zero-Upload">
-  <meta name="author" content="Sven Harzer (svender3d.de)">
+  <!-- Primary Meta Tags -->
+  <title>MeshDoc – Kostenloses Online STL Repair Tool | Svender3D</title>
+  <meta name="title" content="MeshDoc – Kostenloses Online STL Repair Tool | Svender3D">
+  <meta name="description" content="Repariere fehlerhafte STL-Dateien schnell & kostenlos im Browser mit MeshDoc. Automatische Korrektur von Non-Manifold Kanten, Löchern, Normalen und entarteten Dreiecken.">
+  <meta name="keywords" content="meshdoc, stl repair, stl reparieren, svender3d, non manifold fix, stl analyse, mesh repair online, 3d druck stl reparieren, inverted normals, stl hole closer, orca slicer stl fix, bambu studio non manifold">
+  <meta name="author" content="Svender3D">
   <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://meshdoc.svender3d.de/">
 
-  <!-- Schema.org JSON-LD Structured Data -->
+  <!-- Favicon, Theme & Machine-Readable Discovery -->
+  <meta name="theme-color" content="#1a1a1a">
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+  <link rel="alternate icon" type="image/x-icon" href="favicon.ico">
+  <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml">
+  <link rel="help" type="text/plain" title="LLMs Info" href="/llms.txt">
+
+  <!-- Open Graph / Facebook / Discord -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://meshdoc.svender3d.de/">
+  <meta property="og:site_name" content="Svender3D">
+  <meta property="og:title" content="MeshDoc – Online STL Repair & Mesh Diagnose">
+  <meta property="og:description" content="Fehlerhafte 3D-Modelle direkt im Browser analysieren und reparieren. Schluss mit Slicer-Fehlern durch Non-Manifold Kanten und Löcher.">
+  <meta property="og:image" content="https://meshdoc.svender3d.de/og-image.jpg">
+  <meta property="og:image:secure_url" content="https://meshdoc.svender3d.de/og-image.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="MeshDoc – Online STL Repair Tool by Svender3D">
+
+  <!-- Twitter / X Card -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://meshdoc.svender3d.de/">
+  <meta property="twitter:title" content="MeshDoc – Online STL Repair Tool">
+  <meta property="twitter:description" content="Kostenlose STL-Mesh-Reparatur für den 3D-Druck: Behebt Löcher, überlappende Kanten und invertierte Normalen automatisch.">
+  <meta property="twitter:image" content="https://meshdoc.svender3d.de/og-image.jpg">
+
+  <!-- Schema.org JSON-LD Structured Data (WebApplication + FAQPage) -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "WebApplication",
-    "name": "MeshDoc",
-    "url": "https://www.svender3d.de",
-    "applicationCategory": "DesignApplication",
-    "operatingSystem": "All",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "EUR"
-    },
-    "description": "MeshDoc: Client-side 3D print mesh diagnostics, watertight auto-repair, normal orientation, polygon decimation, and material weight estimation for STL, OBJ, and 3MF files."
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        "@id": "https://meshdoc.svender3d.de/#webapp",
+        "name": "MeshDoc",
+        "url": "https://meshdoc.svender3d.de/",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "All",
+        "browserRequirements": "Requires JavaScript. Requires HTML5 Canvas / WebGL.",
+        "creator": {
+          "@type": "Organization",
+          "name": "Svender3D",
+          "url": "https://svender3d.de"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "EUR"
+        },
+        "description": "MeshDoc ist ein webbasiertes Tool zur Diagnose und automatischen Reparatur defekter 3D-Druck-STL-Dateien.",
+        "featureList": [
+          "Erkennung & Reparatur von Naked Edges (offene Kanten)",
+          "Schließen von planaren und nicht-planaren Löchern",
+          "Korrektur von Non-Manifold Kanten",
+          "Automatische Ausrichtung invertierter Normalen",
+          "Bereinigung doppelter & degenerierter Faces",
+          "Erkennung getrennter Shells (Disjoint Shells)",
+          "Live-Statistiken: Vertex Count & Triangle Count (Vorher/Nachher)"
+        ]
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "https://meshdoc.svender3d.de/#faq",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Was macht das Tool MeshDoc?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "MeshDoc analysiert STL-Dateien auf typische 3D-Druck-Fehler wie offene Kanten, Löcher, Non-Manifold-Geometrien und invertierte Normalen und repariert diese automatisiert für Slicer wie Orca Slicer, Cura oder PrusaSlicer."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Werden meine 3D-Modelle gespeichert?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "MeshDoc verarbeitet Dateien temporär und sicher. Nach der Analyse und dem Download werden die Modelldaten nicht dauerhaft gespeichert."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Welche Dateiformate unterstützt MeshDoc?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "MeshDoc unterstützt sowohl binäre als auch ASCII-basierte .stl Dateien."
+            }
+          }
+        ]
+      }
+    ]
   }
   </script>
 
@@ -46,6 +126,9 @@
   <script src="assets/vendor/jszip/jszip.min.js"></script>
 </head>
 <body>
+  <!-- Accessibility Skip Link -->
+  <a href="#main-content" class="skip-link" data-i18n="skipToContent">Zum Inhalt springen / Skip to content</a>
+
   <!-- Fallback Banner for file:/// Protocol -->
   <div id="fileProtocolWarning" style="display: none; background: #ef4444; color: #fff; padding: 10px 16px; font-size: 0.85rem; text-align: center; z-index: 99999; position: relative;">
     ⚠️ <strong>Notice:</strong> When opened directly via <code>file:///</code>, browsers block ES modules. Please start a local web server (e.g. <code>python -m http.server 8080</code> or in VS Code with <em>Live Server</em>).
@@ -58,72 +141,73 @@
 
   <div class="app-container">
     
-    <!-- Top Header Navigation -->
-    <header class="app-header">
-      <div class="brand-wrapper">
-        <div class="brand-logo" style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(99, 102, 241, 0.15)); border: 1.5px solid var(--accent-cyan); border-radius: 10px; display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; box-shadow: 0 0 15px rgba(56, 189, 248, 0.25);">
-          <!-- MeshDoc Custom Vector Logo: 3D Wireframe Hexagon + Medical Repair Cross -->
-          <svg viewBox="0 0 32 32" width="24" height="24" fill="none">
-            <!-- 3D Mesh Hexagon Outline -->
-            <polygon points="16,2 29,9.5 29,22.5 16,30 3,22.5 3,9.5" stroke="url(#meshdoc-grad)" stroke-width="2" stroke-linejoin="round" fill="rgba(56, 189, 248, 0.08)" />
-            <!-- Inner Isometric Mesh Wireframe Lines -->
-            <line x1="16" y1="2" x2="16" y2="10" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round" />
-            <line x1="29" y1="22.5" x2="22" y2="18.5" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round" />
-            <line x1="3" y1="22.5" x2="10" y2="18.5" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round" />
-            <!-- Glowing Medical Doctor Cross in Center -->
-            <path d="M14 10h4v3h3v4h-3v3h-4v-3h-3v-4h3v-3z" fill="url(#cross-grad)" stroke="#38bdf8" stroke-width="1" stroke-linejoin="round" />
-            <!-- Vertex Nodes -->
-            <circle cx="16" cy="2" r="1.5" fill="#38bdf8" />
-            <circle cx="29" cy="9.5" r="1.5" fill="#6366f1" />
-            <circle cx="29" cy="22.5" r="1.5" fill="#38bdf8" />
-            <circle cx="16" cy="30" r="1.5" fill="#6366f1" />
-            <circle cx="3" cy="22.5" r="1.5" fill="#38bdf8" />
-            <circle cx="3" cy="9.5" r="1.5" fill="#6366f1" />
-            <defs>
-              <linearGradient id="meshdoc-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#38bdf8" />
-                <stop offset="100%" stop-color="#6366f1" />
-              </linearGradient>
-              <linearGradient id="cross-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#38bdf8" />
-                <stop offset="100%" stop-color="#22c55e" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-        <div class="brand-text">
-          <h1 data-i18n="appTitle">MeshDoc</h1>
-          <p data-i18n="appSubtitle">Client-Side Mesh Diagnostics, Auto-Repair & Optimization</p>
+    <!-- Top Header Navigation & Hero -->
+    <header class="app-header" role="banner">
+      <div class="brand-wrapper" style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+        <nav aria-label="Hauptnavigation">
+          <!-- Branding / Logo & Link zurück zu svender3d.de -->
+          <a href="https://svender3d.de" target="_blank" rel="noopener" class="brand-link" title="Zurück zu Svender3D">
+            <div class="brand-logo" style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(99, 102, 241, 0.15)); border: 1.5px solid var(--accent-cyan); border-radius: 8px; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);">
+              <svg viewBox="0 0 32 32" width="18" height="18" fill="none" aria-hidden="true">
+                <polygon points="16,2 29,9.5 29,22.5 16,30 3,22.5 3,9.5" stroke="url(#meshdoc-grad)" stroke-width="2" stroke-linejoin="round" fill="rgba(56, 189, 248, 0.08)" />
+                <line x1="16" y1="2" x2="16" y2="10" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round" />
+                <line x1="29" y1="22.5" x2="22" y2="18.5" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round" />
+                <line x1="3" y1="22.5" x2="10" y2="18.5" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round" />
+                <path d="M14 10h4v3h3v4h-3v3h-4v-3h-3v-4h3v-3z" fill="url(#cross-grad)" stroke="#38bdf8" stroke-width="1" stroke-linejoin="round" />
+                <circle cx="16" cy="2" r="1.5" fill="#38bdf8" />
+                <circle cx="29" cy="9.5" r="1.5" fill="#6366f1" />
+                <circle cx="29" cy="22.5" r="1.5" fill="#38bdf8" />
+                <circle cx="16" cy="30" r="1.5" fill="#6366f1" />
+                <circle cx="3" cy="22.5" r="1.5" fill="#38bdf8" />
+                <circle cx="3" cy="9.5" r="1.5" fill="#6366f1" />
+                <defs>
+                  <linearGradient id="meshdoc-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#38bdf8" />
+                    <stop offset="100%" stop-color="#6366f1" />
+                  </linearGradient>
+                  <linearGradient id="cross-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#38bdf8" />
+                    <stop offset="100%" stop-color="#22c55e" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+            <span>Svender3D</span>
+          </a>
+        </nav>
+        <div class="hero-content">
+          <h1 data-i18n="appTitle">MeshDoc – STL Repair & Mesh Diagnose Tool</h1>
+          <p class="subtitle" data-i18n="appSubtitle">Fehlerhafte STL-Dateien analysieren, reparieren und slicerfertig exportieren.</p>
         </div>
       </div>
 
-      <div style="display: flex; align-items: center; gap: 8px;">
+      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
         <!-- What's New Button -->
-        <button class="btn btn-secondary header-btn" onclick="window.openModal('modalWhatsNew', event)" data-open-modal="modalWhatsNew" title="What's New / Release Notes">
-          <span class="pulse-dot"></span>
+        <button class="btn btn-secondary header-btn" onclick="window.openModal('modalWhatsNew', event)" data-open-modal="modalWhatsNew" title="What's New / Release Notes" aria-label="What's New and Release Notes">
+          <span class="pulse-dot" aria-hidden="true"></span>
           <span data-i18n="navWhatsNew">What's New</span>
-          <span class="version-tag">v1.4</span>
+          <span class="version-tag">v1.5</span>
         </button>
 
         <!-- GitHub Repository Link -->
-        <a href="https://github.com/svender3d/mesh-repair-3d" target="_blank" rel="noopener" class="btn btn-secondary header-btn" title="GitHub Repository">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+        <a href="https://github.com/Exulizer/MeshDoc" target="_blank" rel="noopener" class="btn btn-secondary header-btn" title="GitHub Repository" aria-label="MeshDoc GitHub Repository">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
           </svg>
           <span data-i18n="linkGitHub">GitHub</span>
         </a>
 
         <!-- Language Switcher (EN | DE) -->
-        <div class="lang-switch-wrapper" style="display: flex; background: var(--bg-panel); border: 1px solid var(--border-default); border-radius: var(--radius-sm); padding: 2px;">
-          <button class="lang-btn active" data-lang="en">EN</button>
-          <button class="lang-btn" data-lang="de">DE</button>
+        <div class="lang-switch-wrapper" role="group" aria-label="Language Selector" style="display: flex; background: var(--bg-panel); border: 1px solid var(--border-default); border-radius: var(--radius-sm); padding: 2px;">
+          <button class="lang-btn active" data-lang="en" aria-label="Switch language to English">EN</button>
+          <button class="lang-btn" data-lang="de" aria-label="Sprache auf Deutsch wechseln">DE</button>
         </div>
 
-        <button class="btn btn-secondary header-btn" data-open-modal="modalContact" data-i18n="contactBtn">
+        <button class="btn btn-secondary header-btn" data-open-modal="modalContact" data-i18n="contactBtn" aria-label="Contact support">
           ✉️ Contact
         </button>
         <div class="privacy-badge">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
           </svg>
           <span data-i18n="privacyBadge">100% Local Processing (Zero-Upload)</span>
@@ -131,42 +215,56 @@
       </div>
     </header>
 
-    <!-- Bento Grid Dashboard -->
-    <main class="dashboard-grid">
+    <!-- Main Container with Interactive App & On-Page SEO Sections -->
+    <main id="main-content" role="main" style="display: flex; flex-direction: column; gap: var(--space-md);">
       
-      <!-- LEFT SIDEBAR: File Upload & Diagnostics -->
-      <section class="bento-card left-sidebar" aria-label="Datei-Upload und Mesh-Diagnose">
-        <div class="bento-header">
-          <h2 class="bento-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-            </svg>
-            <span data-i18n="diagnosticsTitle">Mesh-Diagnose</span>
-          </h2>
-        </div>
-
-        <div class="bento-content">
-          <!-- Dropzone -->
-          <div class="dropzone-container" id="dropzone" role="button" tabindex="0" aria-label="3D-Datei ablegen oder auswählen">
-            <div class="dropzone-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="17 8 12 3 7 8"></polyline>
-                <line x1="12" y1="3" x2="12" y2="15"></line>
+      <!-- Bento Grid Interactive Dashboard -->
+      <div class="dashboard-grid">
+        
+        <!-- Sektion 1: Upload, Status & Diagnostics -->
+        <section id="upload-section" class="bento-card left-sidebar" aria-labelledby="upload-heading">
+          <div class="bento-header">
+            <h2 id="upload-heading" class="bento-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
               </svg>
-            </div>
-            <div class="dropzone-text">
-              <h3 data-i18n="dropzoneTitle">Datei ablegen oder hier klicken</h3>
-              <p data-i18n="dropzoneSubtitle">STL, OBJ oder 3MF per Drag & Drop</p>
-            </div>
-            <div class="dropzone-tags">
-              <span class="tag-badge">.STL</span>
-              <span class="tag-badge">.OBJ</span>
-              <span class="tag-badge">.3MF</span>
-            </div>
+              <span data-i18n="uploadHeading">STL-Datei hochladen & prüfen</span>
+            </h2>
           </div>
-          <input type="file" id="fileInput" accept=".stl,.obj,.3mf" style="display: none;">
+
+          <div class="bento-content">
+            <!-- Dropzone -->
+            <div class="dropzone-container" id="dropzone" role="button" tabindex="0" aria-label="3D-Datei ablegen oder auswählen">
+              <div class="dropzone-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+              </div>
+              <div class="dropzone-text">
+                <strong data-i18n="dropzoneTitle" style="font-size: 0.9rem; color: var(--text-primary);">Datei ablegen oder hier klicken</strong>
+                <p data-i18n="dropzoneSubtitle">STL, OBJ oder 3MF per Drag & Drop</p>
+              </div>
+              <div class="dropzone-tags">
+                <span class="tag-badge">.STL</span>
+                <span class="tag-badge">.OBJ</span>
+                <span class="tag-badge">.3MF</span>
+              </div>
+            </div>
+            <input type="file" id="fileInput" accept=".stl,.obj,.3mf" style="display: none;" aria-label="3D-Modelldatei hochladen (STL, OBJ, 3MF)">
+
+            <!-- Processing Pipeline Status Indicator -->
+            <div class="processing-pipeline" aria-label="Verarbeitungs-Status Pipeline">
+              <div class="pipeline-step active" id="pipeUpload"><span data-i18n="pipeUpload">1. Upload</span></div>
+              <span class="pipeline-arrow">&rarr;</span>
+              <div class="pipeline-step" id="pipeAnalyze"><span data-i18n="pipeAnalyze">2. Analyse</span></div>
+              <span class="pipeline-arrow">&rarr;</span>
+              <div class="pipeline-step" id="pipeRepair"><span data-i18n="pipeRepair">3. Reparatur</span></div>
+              <span class="pipeline-arrow">&rarr;</span>
+              <div class="pipeline-step" id="pipeExport"><span data-i18n="pipeExport">4. Slicer-Ready</span></div>
+            </div>
 
           <!-- Progress Bar -->
           <div class="progress-bar-container" id="progressBar">
@@ -206,6 +304,23 @@
             </div>
             <div class="printability-reasons-list" id="printabilityReasonsList">
               <!-- Dynamically populated with reasons -->
+            </div>
+          </div>
+
+          <!-- Timeout / CAD Recommendation Alert Box (Hidden by default) -->
+          <div class="alert-box alert-warning" id="timeoutNoticeBox" style="display: none; margin: 12px 0; border: 1.5px solid #f59e0b; background: rgba(245, 158, 11, 0.08); border-radius: var(--radius-md); padding: 12px;">
+            <div style="display: flex; align-items: flex-start; gap: 10px;">
+              <span style="font-size: 1.3rem; line-height: 1;">⏱️</span>
+              <div style="flex: 1;">
+                <strong id="timeoutNoticeTitle" style="color: #f59e0b; font-size: 0.85rem;" data-i18n="timeoutAlertTitle">Reparatur-Zeitlimit erreicht</strong>
+                <p id="timeoutNoticeDesc" style="font-size: 0.76rem; color: var(--text-secondary); margin: 4px 0 6px 0;" data-i18n="timeoutAlertDesc">
+                  Die automatische Reparatur wurde gestoppt, um ein Einfrieren des Browsers zu verhindern.
+                </p>
+                <div style="font-size: 0.73rem; color: var(--text-muted); background: rgba(0,0,0,0.3); padding: 6px 8px; border-radius: 6px; border-left: 3px solid #f59e0b;">
+                  <div data-i18n="timeoutAlertCause"><strong>Ursache:</strong> Modell weicht zu stark von einem geschlossenen Manifold-Volumenkörper ab.</div>
+                  <div style="margin-top: 4px;" data-i18n="timeoutAlertSolution"><strong>Empfehlung:</strong> Bitte im CAD-Programm (Fusion 360, Blender, SolidWorks) nachbessern.</div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -269,36 +384,36 @@
           <!-- Top Floating Controls -->
           <div class="viewer-overlay-top">
             <!-- Mode Switcher -->
-            <div class="viewer-mode-selector">
-              <button class="mode-btn active" data-mode="original">
+            <div class="viewer-mode-selector" role="group" aria-label="3D View Mode">
+              <button class="mode-btn active" data-mode="original" aria-label="Originalmodell anzeigen">
                 <span data-i18n="modeOriginal">Original</span>
               </button>
-              <button class="mode-btn" data-mode="repaired">
+              <button class="mode-btn" data-mode="repaired" aria-label="Repariertes Modell anzeigen">
                 <span data-i18n="modeRepaired">Repariert</span>
               </button>
-              <button class="mode-btn" data-mode="split">
+              <button class="mode-btn" data-mode="split" aria-label="Vergleichsansicht Split-Screen anzeigen">
                 <span data-i18n="modeSplit">Vergleich (Split)</span>
               </button>
             </div>
 
             <!-- Viewport Tools -->
-            <div class="viewer-tool-toggles">
-              <button class="tool-toggle-btn active" id="toggleErrors" data-i18n-title="toggleErrorsTooltip" title="Fehler-Highlighting (rote Kanten) ein/aus">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <div class="viewer-tool-toggles" role="toolbar" aria-label="3D Viewport Controls">
+              <button class="tool-toggle-btn active" id="toggleErrors" data-i18n-title="toggleErrorsTooltip" title="Fehler-Highlighting (rote Kanten) ein/aus" aria-label="Fehler-Hervorhebung (rote Kanten) ein- oder ausschalten">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                   <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
                   <line x1="12" y1="9" x2="12" y2="13"></line>
                   <line x1="12" y1="17" x2="12.01" y2="17"></line>
                 </svg>
               </button>
-              <button class="tool-toggle-btn" id="toggleWireframe" data-i18n-title="toggleWireframeTooltip" title="Drahtgittermodell (Wireframe) ein/aus">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <button class="tool-toggle-btn" id="toggleWireframe" data-i18n-title="toggleWireframeTooltip" title="Drahtgittermodell (Wireframe) ein/aus" aria-label="Drahtgittermodell (Wireframe) ein- oder ausschalten">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                   <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
                   <polyline points="2 17 12 22 22 17"></polyline>
                   <polyline points="2 12 12 17 22 12"></polyline>
                 </svg>
               </button>
-              <button class="tool-toggle-btn active" id="toggleBed" data-i18n-title="toggleBedTooltip" title="Druckbett-Gitter ein/aus">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <button class="tool-toggle-btn active" id="toggleBed" data-i18n-title="toggleBedTooltip" title="Druckbett-Gitter ein/aus" aria-label="Druckbett-Gitter ein- oder ausschalten">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                   <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                   <line x1="3" y1="9" x2="21" y2="9"></line>
                   <line x1="3" y1="15" x2="21" y2="15"></line>
@@ -306,8 +421,8 @@
                   <line x1="15" y1="3" x2="15" y2="21"></line>
                 </svg>
               </button>
-              <button class="tool-toggle-btn" id="btnResetCamera" data-i18n-title="resetCameraTooltip" title="Kamera zurücksetzen (Iso)">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <button class="tool-toggle-btn" id="btnResetCamera" data-i18n-title="resetCameraTooltip" title="Kamera zurücksetzen (Iso)" aria-label="Kamera auf Standardansicht zurücksetzen">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                   <polyline points="1 4 1 10 7 10"></polyline>
                   <polyline points="23 20 23 14 17 14"></polyline>
                   <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
@@ -339,6 +454,12 @@
                 <span id="scanMetricsLabel">Ear-Clipping & Normals</span>
                 <span id="scanPercentText">0%</span>
               </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.08);">
+                <span id="scanTimeoutNotice" style="font-size: 0.72rem; color: var(--text-muted);">⏱️ Max: <span id="scanWatchdogSec">60</span>s Watchdog</span>
+                <button type="button" class="btn btn-secondary btn-mini" id="btnCancelScan" style="border-color: #ef4444; color: #ef4444; padding: 4px 10px; font-size: 0.75rem;" data-i18n="btnCancelRepair">
+                  ✕ Abbrechen
+                </button>
+              </div>
             </div>
           </div>
 
@@ -358,8 +479,8 @@
 
         <div class="bento-content">
           
-          <!-- Auto-Repair Main Action -->
-          <div class="tool-section">
+          <!-- Auto-Repair Main Action (Sticky on scroll) -->
+          <div class="tool-section auto-repair-tool-section" id="autoRepairToolSection">
             <div class="tool-section-header">
               <span data-i18n="autoRepairSectionTitle">Auto-Reparatur Engine</span>
               <span class="status-pill good" style="font-size: 0.65rem;">Wasm / Manifold</span>
@@ -370,25 +491,30 @@
             
             <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; font-size: 0.78rem; color: var(--text-secondary);">
               <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                <input type="checkbox" id="optCloseHoles" checked style="accent-color: var(--accent-cyan);">
+                <input type="checkbox" id="optCloseHoles" checked style="accent-color: var(--accent-cyan);" aria-label="Löcher schließen (Planar Ear-Clipping)">
                 <span data-i18n="optCloseHoles">Löcher schließen (Planar Ear-Clipping)</span>
               </label>
               <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                <input type="checkbox" id="optFixNormals" checked style="accent-color: var(--accent-cyan);">
+                <input type="checkbox" id="optFixNormals" checked style="accent-color: var(--accent-cyan);" aria-label="Normalen nach außen ausrichten">
                 <span data-i18n="optFixNormals">Normalen nach außen ausrichten</span>
               </label>
               <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                <input type="checkbox" id="optWeldVerts" checked style="accent-color: var(--accent-cyan);">
+                <input type="checkbox" id="optWeldVerts" checked style="accent-color: var(--accent-cyan);" aria-label="Doppelte Vertices verschweißen">
                 <span data-i18n="optWeldVerts">Doppelte Vertices verschweißen</span>
               </label>
             </div>
 
-            <button class="btn btn-repair" id="btnAutoRepair">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
-              </svg>
-              <span data-i18n="btnAutoRepair">Auto-Reparatur starten</span>
-            </button>
+            <div id="repairActionsWrapper" style="display: flex; gap: 8px;">
+              <button class="btn btn-repair" id="btnAutoRepair" style="flex: 1;" aria-label="Automatisierte Mesh-Reparatur starten">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+                </svg>
+                <span data-i18n="btnAutoRepair">Auto-Reparatur starten</span>
+              </button>
+              <button type="button" class="btn btn-secondary" id="btnCancelAutoRepair" style="display: none; border-color: #ef4444; color: #ef4444;" title="Reparatur abbrechen" data-i18n="btnCancelRepair" aria-label="Reparatur abbrechen">
+                ✕ Abbrechen
+              </button>
+            </div>
           </div>
 
           <!-- Bed Alignment & Positioning -->
@@ -398,14 +524,14 @@
             </div>
             
             <div class="btn-group-2" style="margin-bottom: 8px;">
-              <button class="btn btn-secondary" id="btnDropToBed" data-i18n-title="btnDropToBedTooltip" title="Setzt das Modell mit dem tiefsten Punkt exakt auf die Druckbett-Oberfläche">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <button class="btn btn-secondary" id="btnDropToBed" data-i18n-title="btnDropToBedTooltip" title="Setzt das Modell mit dem tiefsten Punkt exakt auf die Druckbett-Oberfläche" aria-label="Modell auf Druckbett absetzen">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                   <path d="M12 3v13M5 10l7 7 7-7M4 21h16"></path>
                 </svg>
                 <span data-i18n="btnDropToBed">Auf Bett absetzen</span>
               </button>
-              <button class="btn btn-secondary" id="btnCenterBed" data-i18n-title="btnCenterBedTooltip" title="Zentriert das Modell exakt in der Mitte des Druckbetts">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <button class="btn btn-secondary" id="btnCenterBed" data-i18n-title="btnCenterBedTooltip" title="Zentriert das Modell exakt in der Mitte des Druckbetts" aria-label="Modell mittig auf dem Druckbett zentrieren">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                   <circle cx="12" cy="12" r="9"></circle>
                   <line x1="12" y1="3" x2="12" y2="7"></line>
                   <line x1="12" y1="17" x2="12" y2="21"></line>
@@ -417,13 +543,13 @@
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 12px;">
-              <button class="btn btn-secondary" id="btnRotateX" style="padding: 6px 4px; font-size: 0.72rem;" data-i18n="btnRotateX" title="90° X">
+              <button class="btn btn-secondary" id="btnRotateX" style="padding: 6px 4px; font-size: 0.72rem;" data-i18n="btnRotateX" title="90° X" aria-label="Modell um 90 Grad um die X-Achse drehen">
                 ↻ 90° X
               </button>
-              <button class="btn btn-secondary" id="btnRotateY" style="padding: 6px 4px; font-size: 0.72rem;" data-i18n="btnRotateY" title="90° Y">
+              <button class="btn btn-secondary" id="btnRotateY" style="padding: 6px 4px; font-size: 0.72rem;" data-i18n="btnRotateY" title="90° Y" aria-label="Modell um 90 Grad um die Y-Achse drehen">
                 ↻ 90° Y
               </button>
-              <button class="btn btn-secondary" id="btnRotateZ" style="padding: 6px 4px; font-size: 0.72rem;" data-i18n="btnRotateZ" title="90° Z">
+              <button class="btn btn-secondary" id="btnRotateZ" style="padding: 6px 4px; font-size: 0.72rem;" data-i18n="btnRotateZ" title="90° Z" aria-label="Modell um 90 Grad um die Z-Achse drehen">
                 ↻ 90° Z
               </button>
             </div>
@@ -434,18 +560,75 @@
             </div>
             <div class="range-slider-group">
               <div class="slider-header">
-                <span data-i18n="targetDensityLabel">Ziel-Dichte:</span>
+                <label for="decimateRatio" data-i18n="targetDensityLabel">Ziel-Dichte:</label>
                 <span class="slider-val" id="decimateValue">50%</span>
               </div>
-              <input type="range" class="custom-range" id="decimateRatio" min="0.1" max="0.9" step="0.05" value="0.5">
+              <input type="range" class="custom-range" id="decimateRatio" min="0.1" max="0.95" step="0.05" value="0.5" aria-label="Polygon-Reduktionsgrad">
+              <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-muted); margin-top: 3px;">
+                <span>Low-Poly (10%)</span>
+                <span>Original (95%)</span>
+              </div>
             </div>
-            <button class="btn btn-secondary" id="btnDecimate">
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+            <button class="btn btn-secondary" id="btnDecimate" aria-label="Polygon-Reduktion anwenden">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="8" y1="12" x2="16" y2="12"></line>
               </svg>
               <span data-i18n="btnDecimate">Polygone reduzieren</span>
             </button>
+          </div>
+
+          <!-- Surface Smoothing (Taubin Volume-Preserving) -->
+          <div class="tool-section">
+            <div class="tool-section-header">
+              <span data-i18n="smoothingTitle">Oberflächen-Glättung</span>
+            </div>
+
+            <div class="range-slider-group">
+              <div class="slider-header">
+                <label for="smoothIntensity" data-i18n="smoothIntensityLabel">Glättungs-Intensität:</label>
+                <span class="slider-val" id="smoothIntensityValue">Mittel (3 Passes)</span>
+              </div>
+              <input type="range" class="custom-range" id="smoothIntensity" min="1" max="4" step="1" value="2" aria-label="Glättungs-Intensität">
+              <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-muted); margin-top: 3px;">
+                <span>Leicht (1)</span>
+                <span>Mittel (3)</span>
+                <span>Stark (6)</span>
+                <span>Ultra (10)</span>
+              </div>
+            </div>
+
+            <div style="margin-bottom: 10px; font-size: 0.78rem; color: var(--text-secondary);">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="checkbox" id="optProtectSharpEdges" checked style="accent-color: var(--accent-cyan);" aria-label="Scharfe CAD-Kanten schützen">
+                <span data-i18n="smoothProtectEdges">Scharfe CAD-Kanten schützen (> 30°)</span>
+              </label>
+            </div>
+
+            <!-- Structure Feasibility Warning (Hidden by default) -->
+            <div id="smoothFeasibilityAlert" style="display: none; margin-bottom: 10px; padding: 8px 10px; border-radius: 6px; background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; font-size: 0.74rem; color: #fca5a5;">
+              <strong data-i18n="smoothAlertTitle" style="color: #ef4444; display: block; margin-bottom: 2px;">⚠️ Struktur nicht glättbar</strong>
+              <span id="smoothFeasibilityText" data-i18n="smoothAlertDesc">Das Modell enthält zu viele offene Kanten oder Non-Manifolds.</span>
+              <button type="button" class="btn btn-repair btn-mini" id="btnQuickAutoRepairFromSmooth" style="margin-top: 6px; width: 100%; font-size: 0.72rem; padding: 4px;" aria-label="Automatische Reparatur vor der Glättung starten">
+                ⚡ Jetzt Auto-Reparieren
+              </button>
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-secondary" id="btnSmoothMesh" style="flex: 1; border-color: var(--accent-cyan); color: var(--accent-cyan);" aria-label="Oberflächen-Glättung anwenden">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                </svg>
+                <span data-i18n="btnSmoothMesh">Oberfläche glätten</span>
+              </button>
+              <button class="btn btn-secondary btn-mini" id="btnResetSmooth" style="padding: 0 10px;" title="Glättung auf Original zurücksetzen" aria-label="Glättung zurücksetzen">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                  <path d="M3 3v5h5"></path>
+                </svg>
+                <span data-i18n="btnResetSmooth">Zurücksetzen</span>
+              </button>
+            </div>
           </div>
 
           <!-- Material & Weight Calculation -->
@@ -463,10 +646,10 @@
 
             <div class="range-slider-group">
               <div class="slider-header">
-                <span data-i18n="infillLabel">Infill (Fülldichte):</span>
+                <label for="infillSlider" data-i18n="infillLabel">Infill (Fülldichte):</label>
                 <span class="slider-val" id="infillValue">20%</span>
               </div>
-              <input type="range" class="custom-range" id="infillSlider" min="0" max="100" step="5" value="20">
+              <input type="range" class="custom-range" id="infillSlider" min="0" max="100" step="5" value="20" aria-label="Infill Fülldichte">
             </div>
 
             <div class="metrics-grid" style="margin-bottom: 0;">
@@ -487,18 +670,18 @@
               <span data-i18n="exportTitle">Modell Herunterladen</span>
             </div>
             <div class="btn-group-2" style="margin-bottom: 8px;">
-              <button class="btn btn-primary" id="btnExportBinarySTL">
+              <button class="btn btn-primary" id="btnExportBinarySTL" aria-label="3D-Modell als binäre STL-Datei exportieren">
                 <span data-i18n="btnExportBinarySTL">STL (Binary)</span>
               </button>
-              <button class="btn btn-secondary" id="btnExport3MF">
+              <button class="btn btn-secondary" id="btnExport3MF" aria-label="3D-Modell als 3MF-Paket exportieren">
                 <span data-i18n="btnExport3MF">3MF Paket</span>
               </button>
             </div>
             <div class="btn-group-2">
-              <button class="btn btn-secondary" id="btnExportAsciiSTL">
+              <button class="btn btn-secondary" id="btnExportAsciiSTL" aria-label="3D-Modell als ASCII-STL-Datei exportieren">
                 <span data-i18n="btnExportAsciiSTL">STL (ASCII)</span>
               </button>
-              <button class="btn btn-secondary" id="btnExportOBJ">
+              <button class="btn btn-secondary" id="btnExportOBJ" aria-label="3D-Modell als Wavefront OBJ-Datei exportieren">
                 <span data-i18n="btnExportOBJ">Wavefront OBJ</span>
               </button>
             </div>
@@ -507,19 +690,144 @@
         </div>
       </section>
 
+      </div> <!-- End Bento Grid .dashboard-grid -->
+
+      <!-- Sektion 2: Vorher / Nachher Metriken & Vergleich -->
+      <section id="metrics-section" class="tool-section-card" aria-labelledby="metrics-heading">
+        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <h2 id="metrics-heading" style="margin: 0;">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M18 20V10M12 20V4M6 20v-6"></path>
+            </svg>
+            <span data-i18n="metricsHeading">Mesh-Statistik & Vorher/Nachher-Vergleich</span>
+          </h2>
+          <span id="repairStatusPill" class="status-pill warning" style="font-size: 0.72rem;">
+            <span data-i18n="statusPreRepair">⚡ Original-Modell geladen (Reparatur bereit)</span>
+          </span>
+        </div>
+        <div class="metrics-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--space-md); margin-bottom: 0;">
+          <!-- Vertices Card -->
+          <div class="metric-card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h3 data-i18n="statVerticesTitle">Vertices (Eckpunkte)</h3>
+              <span id="v-delta-badge" class="tag-badge" style="display: none; font-size: 0.7rem; font-weight: 700;">+0</span>
+            </div>
+            <p class="metric-val" id="vertex-stats">
+              <span id="v-stat-display"><span data-i18n="labelCurrentMesh">Aktuell:</span> <span id="v-current-val" style="font-weight: 700; color: var(--accent-cyan);">0</span></span>
+            </p>
+            <span id="v-detail-note" style="font-size: 0.75rem; color: var(--text-muted);" data-i18n="vNoteAction">⚡ Auto-Repair verschweißt redundante Vertices & glättet T-Junctions.</span>
+          </div>
+
+          <!-- Triangles Card -->
+          <div class="metric-card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h3 data-i18n="statTrianglesTitle">Triangles (Dreiecke)</h3>
+              <span id="t-delta-badge" class="tag-badge" style="display: none; font-size: 0.7rem; font-weight: 700;">+0</span>
+            </div>
+            <p class="metric-val" id="tri-stats">
+              <span id="t-stat-display"><span data-i18n="labelCurrentMesh">Aktuell:</span> <span id="t-current-val" style="font-weight: 700; color: var(--accent-cyan);">0</span></span>
+            </p>
+            <span id="t-detail-note" style="font-size: 0.75rem; color: var(--text-muted);" data-i18n="tNoteAction">⚡ Auto-Repair schließt offene Löcher wasserdicht & filtert Null-Flächen.</span>
+          </div>
+
+          <!-- Topology Integrity Card -->
+          <div class="metric-card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h3 data-i18n="statErrorsTitle">Topologie & Wasserdichtigkeit</h3>
+              <span id="errors-badge" class="tag-badge" style="background: var(--status-warning-bg); color: var(--status-warning); border-color: var(--status-warning-border); font-size: 0.7rem;">Analyse</span>
+            </div>
+            <p class="metric-val" id="error-stats">
+              <span id="err-stat-display"><span data-i18n="labelStatusMesh">Status:</span> <span id="err-current-val" style="font-weight: 700; color: var(--status-warning);">0 Defekte</span></span>
+            </p>
+            <span id="errors-detail-note" style="font-size: 0.75rem; color: var(--text-muted);" data-i18n="errorsNoteAction">⚡ Auto-Repair stellt 100% Manifold-Wasserdichtigkeit für alle Slicer her.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sektion 3: Diagnose- & Reparaturkatalog (8 Kernprüfungen) -->
+      <section id="diagnostics-section" class="tool-section-card" aria-labelledby="diagnostics-heading">
+        <div class="section-header">
+          <h2 id="diagnostics-heading">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span data-i18n="diagnosticsHeading">Automatisch behobene Mesh-Fehler</span>
+          </h2>
+        </div>
+        <div class="diagnostics-grid">
+          <article class="diag-item">
+            <h3 data-i18n="diagNakedEdgesTitle">Naked Edges (Offene Außenkanten)</h3>
+            <p data-i18n="diagNakedEdgesDesc">Erkennt und schließt Kanten, die nicht vollständig mit angrenzenden Faces verbunden sind.</p>
+          </article>
+          <article class="diag-item">
+            <h3 data-i18n="diagHolesTitle">Planar & Non-Planar Holes (Löcher im Mesh)</h3>
+            <p data-i18n="diagHolesDesc">Füllt ebene und komplexe dreidimensionale Lücken in der Netzhülle wasserdicht auf.</p>
+          </article>
+          <article class="diag-item">
+            <h3 data-i18n="diagNonManifoldTitle">Non-Manifold Edges (Ungültige Kantenverbindungen)</h3>
+            <p data-i18n="diagNonManifoldDesc">Bereinigt Kanten, an denen mehr als zwei Dreiecksflächen anliegen, für sauberes Slicen.</p>
+          </article>
+          <article class="diag-item">
+            <h3 data-i18n="diagInvertedTitle">Inverted Normals (Verdrehte Flächenausrichtung)</h3>
+            <p data-i18n="diagInvertedDesc">Richtet nach innen zeigende Flächennormalen automatisch nach außen aus.</p>
+          </article>
+          <article class="diag-item">
+            <h3 data-i18n="diagDuplicateTitle">Duplicate Faces (Doppelte Dreiecke)</h3>
+            <p data-i18n="diagDuplicateDesc">Entfernt identische, übereinanderliegende Flächen zur Reduzierung von Artefakten.</p>
+          </article>
+          <article class="diag-item">
+            <h3 data-i18n="diagDegenerateTitle">Degenerate Faces (Null-Flächen)</h3>
+            <p data-i18n="diagDegenerateDesc">Löscht entartete Dreiecke ohne Flächeninhalt oder mit kollinearen Punkten.</p>
+          </article>
+          <article class="diag-item">
+            <h3 data-i18n="diagDisjointTitle">Disjoint Shells (Isolierte Teilnetze)</h3>
+            <p data-i18n="diagDisjointDesc">Identifiziert getrennte Körperfragmente und verbindet oder isoliert diese konsistent.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- Sektion 4: FAQ -->
+      <section id="faq-section" class="tool-section-card" aria-labelledby="faq-heading">
+        <div class="section-header">
+          <h2 id="faq-heading">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <span data-i18n="faqHeading">Häufig gestellte Fragen zu MeshDoc</span>
+          </h2>
+        </div>
+        <div class="faq-accordion">
+          <details>
+            <summary><strong data-i18n="faqQ1">Was bedeutet Non-Manifold bei einer STL-Datei?</strong></summary>
+            <p data-i18n="faqA1">Ein Non-Manifold-Fehler beschreibt eine geometrisch unmögliche oder nicht wasserdichte Mesh-Struktur (z. B. geteilte Kanten zwischen mehr als zwei Flächen). Slicer können daraus keine eindeutigen Innen- und Außenbereiche berechnen.</p>
+          </details>
+          <details>
+            <summary><strong data-i18n="faqQ2">Werden meine hochgeladenen 3D-Modelle gespeichert?</strong></summary>
+            <p data-i18n="faqA2">Nein. MeshDoc verarbeitet 3D-Dateien temporär und 100% lokal im Browser (Zero-Upload). Daten werden nicht dauerhaft oder auf externen Servern gespeichert.</p>
+          </details>
+          <details>
+            <summary><strong data-i18n="faqQ3">Welche Dateiformate unterstützt MeshDoc?</strong></summary>
+            <p data-i18n="faqA3">Es werden sowohl binäre als auch ASCII-basierte .stl-Dateien sowie .obj und .3mf unterstützt.</p>
+          </details>
+        </div>
+      </section>
+
     </main>
 
     <!-- Footer -->
-    <footer class="app-footer">
+    <footer class="app-footer" role="contentinfo">
       <div>
-        <span data-i18n="footerDisclaimer">MeshDoc • 100% Local Zero-Upload Engine • No data sent to third parties.</span>
+        <p>&copy; 2026 Svender3D &bull; MeshDoc STL Repair Tool &bull; <a href="https://svender3d.de" target="_blank" rel="noopener" style="color: var(--accent-cyan); text-decoration: underline;">svender3d.de</a></p>
       </div>
       <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-        <a href="javascript:void(0)" onclick="window.openModal('modalWhatsNew', event)" data-open-modal="modalWhatsNew" data-i18n="linkWhatsNew">What's New (v1.4)</a> &bull;
-        <a href="https://github.com/svender3d/mesh-repair-3d" target="_blank" rel="noopener" data-i18n="linkGitHub">GitHub</a> &bull;
+        <a href="javascript:void(0)" onclick="window.openModal('modalWhatsNew', event)" data-open-modal="modalWhatsNew" data-i18n="linkWhatsNew">What's New (v1.5)</a> &bull;
+        <a href="https://github.com/Exulizer/MeshDoc" target="_blank" rel="noopener" data-i18n="linkGitHub">GitHub</a> &bull;
         <a href="javascript:void(0)" onclick="window.openModal('modalImpressum', event)" data-open-modal="modalImpressum" data-i18n="linkImpressum">Legal Notice</a> &bull;
         <a href="javascript:void(0)" onclick="window.openModal('modalDatenschutz', event)" data-open-modal="modalDatenschutz" data-i18n="linkDatenschutz">Privacy Policy</a> &bull;
         <a href="javascript:void(0)" onclick="window.openModal('modalContact', event)" data-open-modal="modalContact" data-i18n="linkContact">Contact</a> &bull;
+        <a href="sitemap.xml" target="_blank" rel="noopener" data-i18n="linkSitemap">Sitemap</a> &bull;
         <a href="javascript:void(0)" id="btnOpenCookieSettings" onclick="window.openCookieBanner ? window.openCookieBanner(event) : (document.getElementById('cookieBanner').style.display='block')" data-i18n="linkCookieSettings">Cookie Settings</a>
       </div>
     </footer>
@@ -540,12 +848,45 @@
       <div class="modal-body">
         <div class="changelog-timeline">
 
-          <!-- v1.4 (Latest) -->
+          <!-- v1.5 (Latest) -->
           <div class="changelog-card latest">
             <div class="changelog-card-header">
               <div class="changelog-card-title">
-                <span class="version-pill current">v1.4</span>
+                <span class="version-pill current">v1.5</span>
                 <span class="badge-status">Latest Release</span>
+                <strong style="color: var(--text-primary); font-size: 0.9rem;">Zero-Idle GPU Engine, Two-Phase Comparison & UX Restructuring</strong>
+              </div>
+              <span class="changelog-date">August 2026</span>
+            </div>
+            <ul class="changelog-list">
+              <li>
+                <span>⚡</span>
+                <div><strong>Zero-Idle GPU & Demand-Driven WebGL:</strong> WebGL render loop drops to 0% GPU load during idle states (0 FPS when stationary), eliminating GPU overheating, VRAM bandwidth spikes, and display driver screen flickering.</div>
+              </li>
+              <li>
+                <span>📊</span>
+                <div><strong>Two-Phase Before/After Comparison Architecture:</strong> File loading displays exact verified current geometry metrics; post-repair automatically transforms into a complete Before ➔ After delta audit with confirmed 100% Watertight / Manifold status.</div>
+              </li>
+              <li>
+                <span>📍</span>
+                <div><strong>Non-Intrusive Floating Sticky Auto-Repair Action:</strong> A sleek bottom-center floating action pill appears when scrolling past the dashboard, offering instant 1-click repair without obstructing sidebar tools.</div>
+              </li>
+              <li>
+                <span>⬆️</span>
+                <div><strong>Smooth Ease-In-Out Back-To-Top Navigation:</strong> High-precision Back-to-Top physics utilizing an <code>easeInOutCubic</code> deceleration curve (gentle start, fluid glide, soft deceleration).</div>
+              </li>
+              <li>
+                <span>🎯</span>
+                <div><strong>Semantic HTML5 Restructuring & On-Page SEO / JSON-LD:</strong> Full HTML5 semantic landmarks (<code>&lt;header&gt;</code>, <code>&lt;main&gt;</code>, <code>&lt;section&gt;</code>, <code>&lt;article&gt;</code>, <code>&lt;aside&gt;</code>, <code>&lt;footer&gt;</code>), strict H1–H3 hierarchy, schema.org <code>WebApplication</code> &amp; <code>FAQPage</code> schemas, and 100% EN/DE translation parity.</div>
+              </li>
+            </ul>
+          </div>
+
+          <!-- v1.4 -->
+          <div class="changelog-card">
+            <div class="changelog-card-header">
+              <div class="changelog-card-title">
+                <span class="version-pill">v1.4</span>
                 <strong style="color: var(--text-primary); font-size: 0.9rem;">Deep Force-Repair & Visual Hologram Scanner</strong>
               </div>
               <span class="changelog-date">August 2026</span>
@@ -632,7 +973,7 @@
               </li>
               <li>
                 <span>⚖️</span>
-                <div><strong>Material & Cost Estimator:</strong> Weight (g) and filament length (m) calculation for PLA, PETG, ABS, and TPU with customizable infill.</div>
+                <div><strong>Filament & Material Estimator:</strong> Weight (g) and filament length (m) calculation for PLA, PETG, ABS, and TPU with customizable infill.</div>
               </li>
             </ul>
           </div>
@@ -834,22 +1175,22 @@
 
           <div class="form-group">
             <label class="form-label" for="contactMessage" data-i18n="labelMessage">Your Message *</label>
-            <textarea id="contactMessage" class="form-control" data-i18n-placeholder="placeholderMessage" placeholder="How can we help you?" required></textarea>
+            <textarea id="contactMessage" class="form-control" data-i18n-placeholder="placeholderMessage" placeholder="How can we help you?" aria-label="Ihre Nachricht" required></textarea>
           </div>
 
           <div class="form-group">
             <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 0.78rem; color: var(--text-secondary); cursor: pointer;">
-              <input type="checkbox" id="contactPrivacy" required style="accent-color: var(--accent-cyan); margin-top: 2px;">
+              <input type="checkbox" id="contactPrivacy" required style="accent-color: var(--accent-cyan); margin-top: 2px;" aria-label="Datenschutzerklärung Zustimmung">
               <span data-i18n="checkboxPrivacy">I agree to the processing of my data according to the privacy policy.</span>
             </label>
           </div>
 
-          <button type="submit" class="btn btn-primary" style="margin-top: 8px;">
+          <button type="submit" class="btn btn-primary" style="margin-top: 8px;" aria-label="Nachricht absenden">
             <span data-i18n="btnSendMessage">Send Message</span>
           </button>
 
           <div class="form-security-note">
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
               <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
             </svg>
@@ -863,42 +1204,45 @@
   <!-- =========================================================================
        GDPR / DSGVO COOKIE CONSENT BANNER
        ========================================================================= -->
-  <aside class="cookie-banner-overlay" id="cookieBanner" aria-label="Privacy & Cookie Preferences">
-    <div class="cookie-banner-header">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--accent-cyan)" stroke-width="2">
-        <circle cx="12" cy="12" r="10"></circle>
-        <path d="M12 8v4M12 16h.01"></path>
-      </svg>
-      <h3 data-i18n="cookieTitle">Privacy & Cookie Preferences</h3>
+  <aside class="cookie-banner-overlay" id="cookieBanner" aria-label="Privacy and Cookie Preferences">
+    <div class="cookie-banner-header" style="display: flex; align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--accent-cyan)" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M12 8v4M12 16h.01"></path>
+        </svg>
+        <h3 data-i18n="cookieTitle" style="margin: 0; font-size: 0.95rem;">Privacy & Cookie Preferences</h3>
+      </div>
+      <button type="button" id="btnCookieClose" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.4rem; min-width: 40px; min-height: 40px; display: flex; align-items: center; justify-content: center; line-height: 1;" aria-label="Cookie Banner schließen">&times;</button>
     </div>
     <div class="cookie-banner-body">
       <span data-i18n="cookieBody">This application processes 3D files 100% locally in your browser (Zero-Upload). We only store strictly necessary technical preferences. No tracking cookies, no third-party CDNs.</span>
       <a href="javascript:void(0)" onclick="window.openModal('modalDatenschutz', event)" data-open-modal="modalDatenschutz" data-i18n="cookieLearnMore">Privacy Policy</a>.
     </div>
     <div class="cookie-banner-actions">
-      <button type="button" class="cookie-btn cookie-btn-primary" id="btnCookieAcceptAll" onclick="if(window.acceptCookies){window.acceptCookies();}else{try{localStorage.setItem('mesh3d_cookie_consent_v1','all');}catch(e){}document.getElementById('cookieBanner').style.setProperty('display','none','important');}" data-i18n="cookieAcceptAll">
+      <button type="button" class="cookie-btn cookie-btn-primary" id="btnCookieAcceptAll" data-i18n="cookieAcceptAll" aria-label="Alle Cookies akzeptieren">
         Accept All
       </button>
-      <button type="button" class="cookie-btn cookie-btn-secondary" id="btnCookieEssentialOnly" onclick="if(window.essentialCookies){window.essentialCookies();}else{try{localStorage.setItem('mesh3d_cookie_consent_v1','essential');}catch(e){}document.getElementById('cookieBanner').style.setProperty('display','none','important');}" data-i18n="cookieEssentialOnly">
+      <button type="button" class="cookie-btn cookie-btn-secondary" id="btnCookieEssentialOnly" data-i18n="cookieEssentialOnly" aria-label="Nur technisch notwendige Cookies akzeptieren">
         Essential Only
       </button>
     </div>
   </aside>
 
-  <!-- Instant Synchronous Auto-Show for Cookie Banner on First Visit -->
-  <script>
-    (function() {
-      try {
-        if (!localStorage.getItem('mesh3d_cookie_consent_v1')) {
-          var b = document.getElementById('cookieBanner');
-          if (b) {
-            b.style.setProperty('display', 'block', 'important');
-            b.classList.add('show');
-          }
-        }
-      } catch(e) {}
-    })();
-  </script>
+  <!-- Sleek Floating Sticky Auto-Repair Button (Bottom-Center, Non-Intrusive) -->
+  <button type="button" id="btnStickyAutoRepair" class="sticky-repair-btn" aria-label="Auto-Reparatur starten" title="Auto-Reparatur starten">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+    </svg>
+    <span data-i18n="btnAutoRepair">Auto-Reparatur starten</span>
+  </button>
+
+  <!-- Floating Back to Top Button (Smooth Ease-In-Out Deceleration) -->
+  <button type="button" id="btnBackToTop" class="btn-back-to-top" aria-label="Nach oben scrollen" title="Nach oben scrollen">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M18 15l-6-6-6 6"></path>
+    </svg>
+  </button>
 
   <!-- Toast Notification System -->
   <div class="toast-container" id="toastContainer" aria-live="polite"></div>

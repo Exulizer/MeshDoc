@@ -6,9 +6,14 @@
   padding: 0;
 }
 
-html,
+html {
+  min-height: 100%;
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+}
+
 body {
-  height: 100%;
+  min-height: 100%;
   width: 100%;
   overflow-x: hidden;
   background-color: var(--bg-main);
@@ -123,7 +128,7 @@ body {
   grid-template-columns: 340px 1fr 340px;
   gap: var(--space-md);
   flex: 1;
-  align-items: start;
+  align-items: stretch;
 }
 
 @media (max-width: 1200px) {
@@ -201,7 +206,43 @@ body {
 .app-footer a {
   color: var(--accent-cyan);
   text-decoration: none;
+  padding: 4px 2px;
 }
 .app-footer a:hover {
   text-decoration: underline;
 }
+
+/* Accessibility Skip Link */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 16px;
+  background: var(--accent-cyan);
+  color: var(--text-inverse);
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  z-index: 999999;
+  transition: top var(--transition-fast);
+  text-decoration: none;
+}
+.skip-link:focus {
+  top: 16px;
+}
+
+/* Accessible Interactive Focus Rings & Touch Targets */
+button:focus-visible,
+a:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
+}
+
+button,
+a,
+input,
+select {
+  touch-action: manipulation;
+}
+

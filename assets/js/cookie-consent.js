@@ -10,8 +10,9 @@ const STORAGE_KEY = 'mesh3d_cookie_consent_v1';
 export function showCookieBanner() {
   const banner = document.getElementById('cookieBanner');
   if (banner) {
+    banner.style.removeProperty('display');
     banner.classList.add('show');
-    banner.style.setProperty('display', 'block', 'important');
+    banner.style.display = 'block';
   }
 }
 
@@ -19,7 +20,7 @@ export function hideCookieBanner() {
   const banner = document.getElementById('cookieBanner');
   if (banner) {
     banner.classList.remove('show');
-    banner.style.setProperty('display', 'none', 'important');
+    banner.style.display = 'none';
   }
 }
 
@@ -47,7 +48,7 @@ export function acceptEssentialCookies() {
   }
 }
 
-// Global functions for direct inline onclick
+// Global functions for direct inline onclick and window calls
 window.openCookieBanner = (e) => {
   if (e && e.preventDefault) e.preventDefault();
   showCookieBanner();
@@ -56,8 +57,41 @@ window.closeCookieBanner = hideCookieBanner;
 window.acceptCookies = acceptAllCookies;
 window.essentialCookies = acceptEssentialCookies;
 
-// Synchronous check on load
 function init() {
+  // Bind buttons
+  const btnAcceptAll = document.getElementById('btnCookieAcceptAll');
+  if (btnAcceptAll) {
+    btnAcceptAll.addEventListener('click', (e) => {
+      e.preventDefault();
+      acceptAllCookies();
+    });
+  }
+
+  const btnEssential = document.getElementById('btnCookieEssentialOnly');
+  if (btnEssential) {
+    btnEssential.addEventListener('click', (e) => {
+      e.preventDefault();
+      acceptEssentialCookies();
+    });
+  }
+
+  const btnOpenSettings = document.getElementById('btnOpenCookieSettings');
+  if (btnOpenSettings) {
+    btnOpenSettings.addEventListener('click', (e) => {
+      e.preventDefault();
+      showCookieBanner();
+    });
+  }
+
+  const btnClose = document.getElementById('btnCookieClose');
+  if (btnClose) {
+    btnClose.addEventListener('click', (e) => {
+      e.preventDefault();
+      hideCookieBanner();
+    });
+  }
+
+  // Check stored consent
   let consent = null;
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -78,3 +112,4 @@ if (document.readyState === 'loading') {
 } else {
   init();
 }
+

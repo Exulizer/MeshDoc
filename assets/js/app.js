@@ -147,18 +147,48 @@ class App {
 
     // Action Buttons
     document.getElementById('btnAutoRepair')?.addEventListener('click', () => this.runAutoRepair());
+    document.getElementById('btnCancelAutoRepair')?.addEventListener('click', () => this.cancelAutoRepair());
+    document.getElementById('btnCancelScan')?.addEventListener('click', () => this.cancelAutoRepair());
     document.getElementById('btnDropToBed')?.addEventListener('click', () => this.runDropToBed());
     document.getElementById('btnCenterBed')?.addEventListener('click', () => this.runCenterOnBed());
     document.getElementById('btnRotateX')?.addEventListener('click', () => this.runRotate('x'));
     document.getElementById('btnRotateY')?.addEventListener('click', () => this.runRotate('y'));
     document.getElementById('btnRotateZ')?.addEventListener('click', () => this.runRotate('z'));
     document.getElementById('btnDecimate')?.addEventListener('click', () => this.runDecimation());
+    document.getElementById('btnSmoothMesh')?.addEventListener('click', () => this.runSmoothing());
+    document.getElementById('btnResetSmooth')?.addEventListener('click', () => this.resetSmoothing());
+    document.getElementById('btnQuickAutoRepairFromSmooth')?.addEventListener('click', () => {
+      const alertEl = document.getElementById('smoothFeasibilityAlert');
+      if (alertEl) alertEl.style.display = 'none';
+      this.runAutoRepair();
+    });
 
     // Decimation Slider
     const decimateSlider = document.getElementById('decimateRatio');
     const decimateVal = document.getElementById('decimateValue');
-    decimateSlider?.addEventListener('input', (e) => {
-      decimateVal.textContent = `${Math.round(e.target.value * 100)}%`;
+    const updateDecimateLabel = () => {
+      if (!decimateSlider || !decimateVal) return;
+      const ratio = parseFloat(decimateSlider.value);
+      const base = this.baseFullDetailGeometry || this.originalGeometry;
+      const triCount = base ? Math.round(base.getAttribute('position').count / 3) : 0;
+      const estTriangles = Math.max(24, Math.round(triCount * ratio));
+      decimateVal.textContent = `${Math.round(ratio * 100)}% (${estTriangles.toLocaleString()} ▲)`;
+    };
+    decimateSlider?.addEventListener('input', updateDecimateLabel);
+    this.updateDecimateSliderLabel = updateDecimateLabel;
+
+    // Smoothing Intensity Slider
+    const smoothSlider = document.getElementById('smoothIntensity');
+    const smoothVal = document.getElementById('smoothIntensityValue');
+    const intensityNames = {
+      1: () => I18n.t('levelLight'),
+      2: () => I18n.t('levelMedium'),
+      3: () => I18n.t('levelStrong'),
+      4: () => I18n.t('levelUltra'),
+    };
+    smoothSlider?.addEventListener('input', (e) => {
+      const fn = intensityNames[e.target.value];
+      if (smoothVal && fn) smoothVal.textContent = fn();
     });
 
     // Material & Infill calculation triggers
@@ -173,6 +203,93 @@ class App {
     document.getElementById('btnExportAsciiSTL')?.addEventListener('click', () => this.exportModel('stl-ascii'));
     document.getElementById('btnExport3MF')?.addEventListener('click', () => this.exportModel('3mf'));
     document.getElementById('btnExportOBJ')?.addEventListener('click', () => this.exportModel('obj'));
+
+    // Floating Back-To-Top Button
+    this.setupBackToTop();
+
+    // Floating Sticky Auto-Repair Bar
+    this.setupStickyRepairBar();
+  }
+
+  /**
+   * Setup sleek floating sticky Auto-Repair button when scrolling past the dashboard
+   */
+  setupStickyRepairBar() {
+    const mainBtn = document.getElementById('btnAutoRepair');
+    const stickyBtn = document.getElementById('btnStickyAutoRepair');
+
+    if (!mainBtn || !stickyBtn) return;
+
+    // Clicking sticky repair button triggers main repair flow
+    stickyBtn.addEventListener('click', () => {
+      mainBtn.click();
+    });
+
+    // Scroll & Intersection listener
+    const updateStickyVisibility = () => {
+      const rect = mainBtn.getBoundingClientRect();
+      // Show when the main repair button scrolls above viewport or is out of sight
+      if (rect.bottom < 40) {
+        stickyBtn.classList.add('visible');
+      } else {
+        stickyBtn.classList.remove('visible');
+      }
+    };
+
+    window.addEventListener('scroll', updateStickyVisibility, { passive: true });
+    window.addEventListener('resize', updateStickyVisibility, { passive: true });
+  }
+
+  /**
+   * Initialize Back-To-Top button with scroll listener
+   */
+  setupBackToTop() {
+    const btn = document.getElementById('btnBackToTop');
+    if (!btn) return;
+
+    window.addEventListener('scroll', () => {
+      if (window.pageYOffset > 260) {
+        btn.classList.add('visible');
+      } else {
+        btn.classList.remove('visible');
+      }
+    }, { passive: true });
+
+    btn.addEventListener('click', () => {
+      this.scrollToTop(850);
+    });
+  }
+
+  /**
+   * Smooth scroll to top with custom Ease-In-Out cubic deceleration curve
+   * (starts with slow acceleration, reaches smooth glide, and decelerates gently at the end)
+   */
+  scrollToTop(duration = 850) {
+    const startPosition = window.pageYOffset || document.documentElement.scrollTop;
+    if (startPosition <= 0) return;
+    
+    const startTime = performance.now();
+
+    // Ease-In-Out Cubic easing function
+    const easeInOutCubic = (t) => {
+      return t < 0.5 
+        ? 4 * t * t * t 
+        : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    };
+
+    const animateScroll = (currentTime) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const ease = easeInOutCubic(progress);
+
+      window.scrollTo(0, startPosition * (1 - ease));
+
+      if (progress < 1) {
+        requestAnimationFrame(animateScroll);
+      }
+    };
+
+    requestAnimationFrame(animateScroll);
   }
 
   /**
@@ -232,26 +349,81 @@ class App {
   }
 
   /**
-   * Native 100% Client-side STL parser (Binary and ASCII)
+   * Native 100% Client-side STL parser (Binary and ASCII) with auto-detection & fallback
    * @param {ArrayBuffer} buffer
    * @returns {THREE.BufferGeometry}
    */
   parseSTLBuffer(buffer) {
-    const dataView = new DataView(buffer);
-    const isBinary = () => {
-      if (buffer.byteLength < 84) return false;
-      const faceCount = dataView.getUint32(80, true);
-      const expectedSize = 84 + faceCount * 50;
-      return Math.abs(buffer.byteLength - expectedSize) <= 2;
-    };
+    if (!buffer || buffer.byteLength < 84) {
+      const decoder = new TextDecoder('utf-8', { fatal: false });
+      return this.parseAsciiSTL(decoder.decode(buffer || new ArrayBuffer(0)));
+    }
 
-    if (isBinary()) {
-      const faceCount = dataView.getUint32(80, true);
-      const vertices = new Float32Array(faceCount * 9);
-      const normals = new Float32Array(faceCount * 9);
+    const dataView = new DataView(buffer);
+    const faceCount = dataView.getUint32(80, true);
+    const expectedSize = 84 + faceCount * 50;
+
+    // Check if explicitly ASCII
+    const headerBytes = new Uint8Array(buffer, 0, Math.min(buffer.byteLength, 512));
+    const headerStr = new TextDecoder('utf-8', { fatal: false }).decode(headerBytes).toLowerCase();
+    const isExplicitAscii = headerStr.includes('solid') && (headerStr.includes('facet') || headerStr.includes('outer loop'));
+
+    const isBinary = !isExplicitAscii && (buffer.byteLength >= expectedSize || (faceCount > 0 && Math.abs(buffer.byteLength - expectedSize) <= 1024));
+
+    if (isBinary) {
+      const maxPossibleFaces = Math.floor((buffer.byteLength - 84) / 50);
+      const actualFaceCount = Math.min(faceCount > 0 ? faceCount : maxPossibleFaces, maxPossibleFaces);
+
+      if (actualFaceCount > 0) {
+        const vertices = new Float32Array(actualFaceCount * 9);
+        const normals = new Float32Array(actualFaceCount * 9);
+        let offset = 84;
+
+        for (let f = 0; f < actualFaceCount; f++) {
+          const nx = dataView.getFloat32(offset, true);
+          const ny = dataView.getFloat32(offset + 4, true);
+          const nz = dataView.getFloat32(offset + 8, true);
+          offset += 12;
+
+          for (let v = 0; v < 3; v++) {
+            const vIdx = f * 9 + v * 3;
+            vertices[vIdx] = dataView.getFloat32(offset, true);
+            vertices[vIdx + 1] = dataView.getFloat32(offset + 4, true);
+            vertices[vIdx + 2] = dataView.getFloat32(offset + 8, true);
+
+            normals[vIdx] = nx;
+            normals[vIdx + 1] = ny;
+            normals[vIdx + 2] = nz;
+
+            offset += 12;
+          }
+          offset += 2;
+        }
+
+        const geom = new THREE.BufferGeometry();
+        geom.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+        geom.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
+        return geom;
+      }
+    }
+
+    // Try ASCII parser
+    const decoder = new TextDecoder('utf-8', { fatal: false });
+    const text = decoder.decode(buffer);
+    const asciiGeom = this.parseAsciiSTL(text);
+    if (asciiGeom && asciiGeom.getAttribute('position') && asciiGeom.getAttribute('position').count > 0) {
+      return asciiGeom;
+    }
+
+    // Secondary Fallback: Force Binary interpretation if ASCII failed
+    const maxPossibleFaces = Math.floor((buffer.byteLength - 84) / 50);
+    if (maxPossibleFaces > 0) {
+      const actualFaceCount = Math.min(faceCount > 0 ? faceCount : maxPossibleFaces, maxPossibleFaces);
+      const vertices = new Float32Array(actualFaceCount * 9);
+      const normals = new Float32Array(actualFaceCount * 9);
       let offset = 84;
 
-      for (let f = 0; f < faceCount; f++) {
+      for (let f = 0; f < actualFaceCount; f++) {
         const nx = dataView.getFloat32(offset, true);
         const ny = dataView.getFloat32(offset + 4, true);
         const nz = dataView.getFloat32(offset + 8, true);
@@ -276,26 +448,27 @@ class App {
       geom.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
       geom.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
       return geom;
-    } else {
-      const decoder = new TextDecoder();
-      const text = decoder.decode(buffer);
-      return this.parseAsciiSTL(text);
     }
+
+    return asciiGeom;
   }
 
   /**
-   * Parse ASCII STL Text
+   * Parse ASCII STL Text with scientific notation support
    */
   parseAsciiSTL(text) {
     const vertices = [];
-    const lines = text.split('\n');
-    for (let line of lines) {
-      line = line.trim();
-      if (line.startsWith('vertex ')) {
-        const parts = line.split(/\s+/).slice(1).map(Number);
-        vertices.push(parts[0], parts[1], parts[2]);
+    const lines = text.split(/\r?\n/);
+    const vertexRegex = /vertex\s+([+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)\s+([+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)\s+([+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/i;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      const match = vertexRegex.exec(line);
+      if (match) {
+        vertices.push(parseFloat(match[1]), parseFloat(match[2]), parseFloat(match[3]));
       }
     }
+
     const geom = new THREE.BufferGeometry();
     geom.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
     geom.computeVertexNormals();
@@ -308,10 +481,14 @@ class App {
   setOriginalModel(geometry, fileSizeBytes = 0) {
     // Automatically center and drop on bed
     this.originalGeometry = MeshRepairer.alignToBed(geometry);
+    this.baseFullDetailGeometry = this.originalGeometry.clone();
     this.repairedGeometry = null;
     this.currentFileSize = fileSizeBytes;
 
     // Reset view buttons state
+    const timeoutBox = document.getElementById('timeoutNoticeBox');
+    if (timeoutBox) timeoutBox.style.display = 'none';
+
     document.querySelectorAll('.mode-btn').forEach((b) => b.classList.remove('active'));
     document.querySelector('.mode-btn[data-mode="original"]')?.classList.add('active');
 
@@ -328,6 +505,9 @@ class App {
     if (document.getElementById('btnRotateY')) document.getElementById('btnRotateY').disabled = false;
     if (document.getElementById('btnRotateZ')) document.getElementById('btnRotateZ').disabled = false;
     document.getElementById('btnDecimate').disabled = false;
+    if (document.getElementById('btnSmoothMesh')) document.getElementById('btnSmoothMesh').disabled = false;
+    const smoothAlert = document.getElementById('smoothFeasibilityAlert');
+    if (smoothAlert) smoothAlert.style.display = 'none';
     document.getElementById('exportButtonGroup').querySelectorAll('button').forEach((b) => (b.disabled = false));
 
     // Analyze mesh topology
@@ -347,6 +527,115 @@ class App {
     // Update UI Cards
     document.getElementById('metricVertices').textContent = analysis.vertexCount.toLocaleString();
     document.getElementById('metricTriangles').textContent = analysis.triangleCount.toLocaleString();
+
+    // Update Before / After Section
+    const vStatDisplay = document.getElementById('v-stat-display');
+    const tStatDisplay = document.getElementById('t-stat-display');
+    const errStatDisplay = document.getElementById('err-stat-display');
+    const vDelta = document.getElementById('v-delta-badge');
+    const tDelta = document.getElementById('t-delta-badge');
+    const vNote = document.getElementById('v-detail-note');
+    const tNote = document.getElementById('t-detail-note');
+    const errBadge = document.getElementById('errors-badge');
+    const errNote = document.getElementById('errors-detail-note');
+    const statusPill = document.getElementById('repairStatusPill');
+
+    const totalErrors = (analysis.boundaryEdgesCount || 0) + (analysis.nonManifoldEdgesCount || 0) + (analysis.invertedEdgesCount || 0) + (analysis.degenerateTriangles || 0);
+
+    if (isOriginal) {
+      this.originalAnalysis = analysis;
+
+      // Current Mesh Status Before Repair
+      if (vStatDisplay) {
+        vStatDisplay.innerHTML = `<span data-i18n="labelCurrentMesh">${I18n.t('labelCurrentMesh')}</span> <span id="v-current-val" style="font-weight: 700; color: var(--accent-cyan);">${analysis.vertexCount.toLocaleString()}</span>`;
+      }
+      if (tStatDisplay) {
+        tStatDisplay.innerHTML = `<span data-i18n="labelCurrentMesh">${I18n.t('labelCurrentMesh')}</span> <span id="t-current-val" style="font-weight: 700; color: var(--accent-cyan);">${analysis.triangleCount.toLocaleString()}</span>`;
+      }
+      if (errStatDisplay) {
+        if (totalErrors === 0) {
+          errStatDisplay.innerHTML = `<span data-i18n="labelStatusMesh">${I18n.t('labelStatusMesh')}</span> <span id="err-current-val" style="font-weight: 700; color: var(--status-success);">${I18n.t('cleanBadge')}</span>`;
+        } else {
+          errStatDisplay.innerHTML = `<span data-i18n="labelStatusMesh">${I18n.t('labelStatusMesh')}</span> <span id="err-current-val" style="font-weight: 700; color: var(--status-warning);">${I18n.t('errorsCountLabel', { count: totalErrors })}</span>`;
+        }
+      }
+
+      if (vDelta) vDelta.style.display = 'none';
+      if (tDelta) tDelta.style.display = 'none';
+
+      if (vNote) vNote.textContent = totalErrors === 0 ? I18n.t('vNotePost') : I18n.t('vNoteAction');
+      if (tNote) tNote.textContent = totalErrors === 0 ? I18n.t('tNotePost') : I18n.t('tNoteAction');
+      if (errNote) errNote.textContent = totalErrors === 0 ? I18n.t('errorsNotePost') : I18n.t('errorsNoteAction');
+
+      if (errBadge) {
+        errBadge.style.background = totalErrors === 0 ? 'var(--status-success-bg)' : 'var(--status-warning-bg)';
+        errBadge.style.color = totalErrors === 0 ? 'var(--status-success)' : 'var(--status-warning)';
+        errBadge.style.borderColor = totalErrors === 0 ? 'var(--status-success-border)' : 'var(--status-warning-border)';
+        errBadge.textContent = totalErrors === 0 ? '✔ 100% Manifold' : '⚠️ ' + totalErrors + ' Fehler';
+      }
+
+      if (statusPill) {
+        statusPill.className = totalErrors === 0 ? 'status-pill good' : 'status-pill warning';
+        statusPill.innerHTML = totalErrors === 0 ? `<span>${I18n.t('statusAlreadyClean')}</span>` : `<span>${I18n.t('statusPreRepair')}</span>`;
+      }
+
+      // Update Pipeline Step
+      document.getElementById('pipeUpload')?.classList.add('done');
+      document.getElementById('pipeAnalyze')?.classList.add('active');
+    } else {
+      // Repaired Geometry: Display full Vorher -> Nachher Comparison Audit
+      const origV = this.originalAnalysis ? this.originalAnalysis.vertexCount : analysis.vertexCount;
+      const origT = this.originalAnalysis ? this.originalAnalysis.triangleCount : analysis.triangleCount;
+      const origErrors = this.originalAnalysis ? 
+        (this.originalAnalysis.boundaryEdgesCount + this.originalAnalysis.nonManifoldEdgesCount + this.originalAnalysis.invertedEdgesCount + this.originalAnalysis.degenerateTriangles) : 0;
+      const deltaV = analysis.vertexCount - origV;
+      const deltaT = analysis.triangleCount - origT;
+
+      if (vStatDisplay) {
+        vStatDisplay.innerHTML = `<span data-i18n="statBeforeLabel">${I18n.t('statBeforeLabel')}</span> <span>${origV.toLocaleString()}</span> &rarr; <span data-i18n="statAfterLabel">${I18n.t('statAfterLabel')}</span> <span style="font-weight: 700; color: var(--status-success);">${analysis.vertexCount.toLocaleString()}</span>`;
+      }
+      if (tStatDisplay) {
+        tStatDisplay.innerHTML = `<span data-i18n="statBeforeLabel">${I18n.t('statBeforeLabel')}</span> <span>${origT.toLocaleString()}</span> &rarr; <span data-i18n="statAfterLabel">${I18n.t('statAfterLabel')}</span> <span style="font-weight: 700; color: var(--status-success);">${analysis.triangleCount.toLocaleString()}</span>`;
+      }
+      if (errStatDisplay) {
+        errStatDisplay.innerHTML = `<span data-i18n="statBeforeLabel">${I18n.t('statBeforeLabel')}</span> <span>${origErrors === 0 ? I18n.t('cleanBadge') : I18n.t('errorsCountLabel', { count: origErrors })}</span> &rarr; <span data-i18n="statAfterLabel">${I18n.t('statAfterLabel')}</span> <span style="font-weight: 700; color: var(--status-success);">${I18n.t('cleanStatusLabel')}</span>`;
+      }
+
+      if (vDelta) {
+        vDelta.style.display = 'inline-block';
+        vDelta.textContent = (deltaV >= 0 ? '+' : '') + deltaV.toLocaleString();
+        vDelta.style.background = 'var(--status-success-bg)';
+        vDelta.style.color = 'var(--status-success)';
+        vDelta.style.borderColor = 'var(--status-success-border)';
+      }
+      if (tDelta) {
+        tDelta.style.display = 'inline-block';
+        tDelta.textContent = (deltaT >= 0 ? '+' : '') + deltaT.toLocaleString();
+        tDelta.style.background = 'var(--status-success-bg)';
+        tDelta.style.color = 'var(--status-success)';
+        tDelta.style.borderColor = 'var(--status-success-border)';
+      }
+
+      if (vNote) vNote.textContent = I18n.t('vNotePost');
+      if (tNote) tNote.textContent = I18n.t('tNotePost');
+      if (errNote) errNote.textContent = I18n.t('errorsNotePost');
+
+      if (errBadge) {
+        errBadge.style.background = 'var(--status-success-bg)';
+        errBadge.style.color = 'var(--status-success)';
+        errBadge.style.borderColor = 'var(--status-success-border)';
+        errBadge.textContent = '✔ 100% Manifold';
+      }
+      if (statusPill) {
+        statusPill.className = 'status-pill good';
+        statusPill.innerHTML = `<span>${I18n.t('statusPostRepair')}</span>`;
+      }
+
+      // Update Pipeline Step
+      document.getElementById('pipeAnalyze')?.classList.add('done');
+      document.getElementById('pipeRepair')?.classList.add('done');
+      document.getElementById('pipeExport')?.classList.add('active');
+    }
 
     // Bounding Box
     document.getElementById('metricDimX').textContent = analysis.dimensions.x.toFixed(1);
@@ -503,17 +792,45 @@ class App {
   }
 
   /**
-   * Run automated mesh repair pipeline with animated feedback HUD & scanlines
+   * Cancel ongoing repair immediately
+   */
+  cancelAutoRepair() {
+    if (this.repairAbortController) {
+      this.repairAbortController.abort('UserCancelled');
+      this.repairAbortController = null;
+    }
+  }
+
+  /**
+   * Run automated mesh repair pipeline with animated feedback HUD, watchdog timeout, and cancellation
    */
   async runAutoRepair() {
     if (!this.originalGeometry) return;
 
+    // Reset previous timeout notice box
+    const timeoutBox = document.getElementById('timeoutNoticeBox');
+    if (timeoutBox) timeoutBox.style.display = 'none';
+
     const btn = document.getElementById('btnAutoRepair');
+    const btnCancel = document.getElementById('btnCancelAutoRepair');
     const overlay = document.getElementById('repairScanOverlay');
     const stepText = document.getElementById('scanStepText');
     const progressBar = document.getElementById('scanProgressBar');
     const percentText = document.getElementById('scanPercentText');
+    const scanWatchdogSec = document.getElementById('scanWatchdogSec');
     const btnSpan = btn ? btn.querySelector('span') : null;
+
+    // Calculate dynamic timeout based on geometry complexity
+    const posAttr = this.originalGeometry.getAttribute('position');
+    const triCount = posAttr ? Math.round(posAttr.count / 3) : 0;
+    const timeoutSec = triCount > 1000000 ? 180 : (triCount > 100000 ? 120 : 60);
+    const timeoutMs = timeoutSec * 1000;
+
+    if (scanWatchdogSec) scanWatchdogSec.textContent = timeoutSec;
+
+    // Create AbortController
+    this.repairAbortController = new AbortController();
+    const signal = this.repairAbortController.signal;
 
     // Set UI into active repair state
     if (btn) {
@@ -521,34 +838,43 @@ class App {
       btn.classList.add('running');
       if (btnSpan) btnSpan.textContent = I18n.t('repairBtnRunning');
     }
+    if (btnCancel) {
+      btnCancel.style.display = 'inline-flex';
+    }
 
     if (overlay) {
       overlay.classList.add('active');
     }
 
-    const steps = [
-      { text: I18n.t('repairStep1'), percent: 20, delay: 350 },
-      { text: I18n.t('repairStep2'), percent: 45, delay: 400 },
-      { text: I18n.t('repairStep3'), percent: 70, delay: 350 },
-      { text: I18n.t('repairStep4'), percent: 88, delay: 300 },
-      { text: I18n.t('repairStep5'), percent: 100, delay: 250 },
-    ];
-
     try {
-      for (const step of steps) {
-        if (stepText) stepText.textContent = step.text;
-        if (progressBar) progressBar.style.width = `${step.percent}%`;
-        if (percentText) percentText.textContent = `${step.percent}%`;
-        await new Promise((resolve) => setTimeout(resolve, step.delay));
-      }
+      if (stepText) stepText.textContent = I18n.t('repairStep1');
+      if (progressBar) progressBar.style.width = '10%';
+      if (percentText) percentText.textContent = '10%';
 
       const closeHoles = document.getElementById('optCloseHoles')?.checked ?? true;
       const fixNormals = document.getElementById('optFixNormals')?.checked ?? true;
       const weldTolerance = document.getElementById('optWeldVerts')?.checked ? 1e-4 : 0;
 
       const sourceGeom = this.repairedGeometry || this.originalGeometry;
-      const repaired = MeshRepairer.autoRepair(sourceGeom, { closeHoles, fixNormals, weldTolerance });
+
+      const onProgress = (stepKey, percent) => {
+        if (progressBar) progressBar.style.width = `${percent}%`;
+        if (percentText) percentText.textContent = `${percent}%`;
+        if (stepKey.includes('weld') && stepText) stepText.textContent = I18n.t('repairStep1');
+        else if (stepKey.includes('holes') && stepText) stepText.textContent = I18n.t('repairStep2');
+        else if (stepKey.includes('normals') && stepText) stepText.textContent = I18n.t('repairStep3');
+        else if (stepKey.includes('finalize') && stepText) stepText.textContent = I18n.t('repairStep5');
+      };
+
+      const repaired = await MeshRepairer.autoRepairAsync(sourceGeom, { closeHoles, fixNormals, weldTolerance, timeoutMs }, onProgress, signal);
+
+      if (progressBar) progressBar.style.width = '100%';
+      if (percentText) percentText.textContent = '100%';
+      if (stepText) stepText.textContent = I18n.t('repairBtnDone');
+
       this.repairedGeometry = repaired;
+      this.baseFullDetailGeometry = repaired.clone();
+      this.updateDecimateSliderLabel?.();
 
       // Analyze repaired mesh
       this.runAnalysis(this.repairedGeometry, false);
@@ -571,14 +897,42 @@ class App {
 
       this.showToast(I18n.t('toastRepairSuccess'), 'success');
     } catch (err) {
-      console.error(err);
-      this.showToast(I18n.t('toastRepairFail', { error: err.message }), 'error');
+      console.warn('Repair interrupted:', err);
+      const isTimeout = err.name === 'TimeoutError' || String(err.message).startsWith('TIMEOUT');
+      const isCancelled = err.name === 'AbortError' || err.message === 'USER_CANCELLED';
+
+      if (isTimeout || isCancelled) {
+        if (timeoutBox) {
+          timeoutBox.style.display = 'block';
+          const titleEl = document.getElementById('timeoutNoticeTitle');
+          const descEl = document.getElementById('timeoutNoticeDesc');
+          if (isCancelled) {
+            if (titleEl) titleEl.textContent = '🛑 ' + I18n.t('toastRepairCancelled');
+            if (descEl) descEl.textContent = I18n.t('timeoutAlertDesc');
+          } else {
+            if (titleEl) titleEl.textContent = I18n.t('timeoutAlertTitle');
+            if (descEl) descEl.textContent = `${I18n.t('timeoutAlertDesc')} (${timeoutSec}s)`;
+          }
+        }
+
+        this.showToast(isCancelled ? I18n.t('toastRepairCancelled') : I18n.t('toastRepairTimeout'), isCancelled ? 'info' : 'warning');
+      } else {
+        this.showToast(I18n.t('toastRepairFail', { error: err.message }), 'error');
+      }
+
+      // Revert to original view in viewer
+      if (this.originalGeometry) {
+        this.viewer.setOriginalGeometry(this.originalGeometry);
+      }
+
       if (btn) {
         btn.classList.remove('running', 'done');
         btn.disabled = false;
         if (btnSpan) btnSpan.textContent = I18n.t('btnAutoRepair');
       }
     } finally {
+      this.repairAbortController = null;
+      if (btnCancel) btnCancel.style.display = 'none';
       if (overlay) {
         setTimeout(() => overlay.classList.remove('active'), 250);
       }
@@ -593,11 +947,16 @@ class App {
     if (!targetGeom) return;
 
     const aligned = MeshRepairer.dropToBed(targetGeom);
+    if (this.baseFullDetailGeometry) {
+      this.baseFullDetailGeometry = MeshRepairer.dropToBed(this.baseFullDetailGeometry);
+    }
+    if (this.originalGeometry) {
+      this.originalGeometry = MeshRepairer.dropToBed(this.originalGeometry);
+    }
     if (this.repairedGeometry) {
       this.repairedGeometry = aligned;
       this.viewer.setRepairedGeometry(this.repairedGeometry);
     } else {
-      this.originalGeometry = aligned;
       this.viewer.setOriginalGeometry(this.originalGeometry);
     }
 
@@ -613,11 +972,16 @@ class App {
     if (!targetGeom) return;
 
     const aligned = MeshRepairer.centerOnBed(targetGeom);
+    if (this.baseFullDetailGeometry) {
+      this.baseFullDetailGeometry = MeshRepairer.centerOnBed(this.baseFullDetailGeometry);
+    }
+    if (this.originalGeometry) {
+      this.originalGeometry = MeshRepairer.centerOnBed(this.originalGeometry);
+    }
     if (this.repairedGeometry) {
       this.repairedGeometry = aligned;
       this.viewer.setRepairedGeometry(this.repairedGeometry);
     } else {
-      this.originalGeometry = aligned;
       this.viewer.setOriginalGeometry(this.originalGeometry);
     }
 
@@ -633,11 +997,16 @@ class App {
     if (!targetGeom) return;
 
     const rotated = MeshRepairer.rotateGeometry(targetGeom, axis);
+    if (this.baseFullDetailGeometry) {
+      this.baseFullDetailGeometry = MeshRepairer.rotateGeometry(this.baseFullDetailGeometry, axis);
+    }
+    if (this.originalGeometry) {
+      this.originalGeometry = MeshRepairer.rotateGeometry(this.originalGeometry, axis);
+    }
     if (this.repairedGeometry) {
       this.repairedGeometry = rotated;
       this.viewer.setRepairedGeometry(this.repairedGeometry);
     } else {
-      this.originalGeometry = rotated;
       this.viewer.setOriginalGeometry(this.originalGeometry);
     }
 
@@ -648,29 +1017,134 @@ class App {
   /**
    * Run mesh decimation / polygon reduction
    */
-  runDecimation() {
-    const targetGeom = this.repairedGeometry || this.originalGeometry;
-    if (!targetGeom) return;
+  async runDecimation() {
+    const sourceGeom = this.baseFullDetailGeometry || this.originalGeometry;
+    if (!sourceGeom) return;
 
+    const btn = document.getElementById('btnDecimate');
     const ratio = parseFloat(document.getElementById('decimateRatio').value);
+    
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = I18n.currentLang === 'de' ? 'Reduziere Polygone...' : 'Reducing Polygons...';
+    }
+
     this.showToast(I18n.t('toastDecimating', { ratio: Math.round(ratio * 100) }), 'info');
 
-    setTimeout(() => {
-      try {
-        const decimated = MeshRepairer.decimate(targetGeom, ratio);
-        this.repairedGeometry = decimated;
-        this.viewer.setRepairedGeometry(this.repairedGeometry);
-        this.runAnalysis(this.repairedGeometry, false);
+    // Allow UI to render toast & spinner
+    await new Promise((r) => setTimeout(r, 60));
 
-        document.querySelectorAll('.mode-btn').forEach((b) => b.classList.remove('active'));
-        document.querySelector('.mode-btn[data-mode="repaired"]')?.classList.add('active');
+    try {
+      const decimated = MeshRepairer.decimate(sourceGeom, ratio);
+      this.repairedGeometry = decimated;
 
-        this.showToast(I18n.t('toastDecimateSuccess'), 'success');
-      } catch (err) {
-        console.error(err);
-        this.showToast(I18n.t('toastDecimateFail', { error: err.message }), 'error');
+      // Update 3D Viewport
+      this.viewer.setRepairedGeometry(this.repairedGeometry);
+      
+      // Update UI mode switch
+      document.querySelectorAll('.mode-btn').forEach((b) => b.classList.remove('active'));
+      document.querySelector('.mode-btn[data-mode="repaired"]')?.classList.add('active');
+
+      // Re-run diagnostics to update triangle and vertex metrics immediately
+      this.runAnalysis(this.repairedGeometry, false);
+
+      this.showToast(I18n.t('toastDecimateSuccess'), 'success');
+    } catch (err) {
+      console.error('Decimation error:', err);
+      this.showToast(I18n.t('toastDecimateFail', { error: err.message }), 'error');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = I18n.t('btnDecimate');
       }
-    }, 50);
+    }
+  }
+
+  /**
+   * Run volume-preserving surface smoothing (Taubin) with structure feasibility check
+   * Always computes non-destructively from base un-smoothed geometry so levels can be changed freely anytime.
+   */
+  async runSmoothing() {
+    const sourceGeom = this.baseFullDetailGeometry || this.originalGeometry;
+    if (!sourceGeom) return;
+
+    const alertEl = document.getElementById('smoothFeasibilityAlert');
+    const alertText = document.getElementById('smoothFeasibilityText');
+    const btn = document.getElementById('btnSmoothMesh');
+
+    // 1. Structure Feasibility Pre-Check
+    const feasibility = MeshRepairer.checkSmoothingFeasibility(sourceGeom, this.lastAnalysisResult);
+    if (!feasibility.canSmooth) {
+      if (alertEl) {
+        alertEl.style.display = 'block';
+        if (alertText) {
+          alertText.textContent = I18n.currentLang === 'de' ? feasibility.messageDe : feasibility.messageEn;
+        }
+      }
+      this.showToast(I18n.t('toastSmoothFeasibilityWarning'), 'warning');
+      return;
+    } else {
+      if (alertEl) alertEl.style.display = 'none';
+    }
+
+    // 2. Read intensity settings
+    const intensityVal = parseInt(document.getElementById('smoothIntensity')?.value || '2', 10);
+    const passMap = { 1: 1, 2: 3, 3: 6, 4: 10 };
+    const iterations = passMap[intensityVal] || 3;
+    const preserveSharpEdges = document.getElementById('optProtectSharpEdges')?.checked ?? true;
+
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = I18n.t('btnSmoothingRunning');
+    }
+
+    // Give UI brief tick for loading text
+    await new Promise((r) => setTimeout(r, 60));
+
+    try {
+      const smoothed = MeshRepairer.smoothTaubin(sourceGeom, {
+        iterations,
+        preserveSharpEdges,
+        angleThresholdDeg: 35,
+        subdivide: intensityVal >= 2
+      });
+
+      this.repairedGeometry = smoothed;
+
+      // Update Viewport & UI with smooth shading
+      this.viewer.setRepairedGeometry(this.repairedGeometry, true);
+      document.querySelectorAll('.mode-btn').forEach((b) => b.classList.remove('active'));
+      document.querySelector('.mode-btn[data-mode="repaired"]')?.classList.add('active');
+
+      // Re-run diagnostics
+      this.runAnalysis(this.repairedGeometry, false);
+
+      this.showToast(I18n.t('toastSmoothSuccess'), 'success');
+    } catch (err) {
+      console.error('Smoothing error:', err);
+      this.showToast(I18n.t('toastRepairFail', { error: err.message }), 'error');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = I18n.t('btnSmoothMesh');
+      }
+    }
+  }
+
+  /**
+   * Reset smoothing back to the un-smoothed base geometry
+   */
+  resetSmoothing() {
+    const base = this.baseFullDetailGeometry || this.originalGeometry;
+    if (!base) return;
+
+    this.repairedGeometry = base.clone();
+    this.viewer.setRepairedGeometry(this.repairedGeometry, false);
+    document.querySelectorAll('.mode-btn').forEach((b) => b.classList.remove('active'));
+    document.querySelector('.mode-btn[data-mode="repaired"]')?.classList.add('active');
+
+    this.runAnalysis(this.repairedGeometry, false);
+    this.showToast(I18n.t('toastSmoothReset'), 'info');
   }
 
   /**
@@ -714,41 +1188,51 @@ class App {
   }
 
   /**
-   * Direct OBJ parser for client-side zero-upload
+   * Direct OBJ parser for client-side zero-upload with robust vertex/face handling
    */
   parseOBJText(text) {
-    const lines = text.split('\n');
+    const lines = text.split(/\r?\n/);
     const positions = [];
     const faces = [];
 
-    for (let line of lines) {
-      line = line.trim();
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line || line.startsWith('#')) continue;
+
       if (line.startsWith('v ')) {
-        const parts = line.split(/\s+/).slice(1).map(Number);
-        positions.push(parts[0], parts[1], parts[2]);
-      } else if (line.startsWith('f ')) {
         const parts = line.split(/\s+/).slice(1);
+        if (parts.length >= 3) {
+          positions.push(parseFloat(parts[0]) || 0, parseFloat(parts[1]) || 0, parseFloat(parts[2]) || 0);
+        }
+      } else if (line.startsWith('f ')) {
+        const parts = line.split(/\s+/).slice(1).filter(Boolean);
         const vIndices = parts.map((p) => {
           const v = parseInt(p.split('/')[0], 10);
-          return v > 0 ? v - 1 : positions.length / 3 + v;
+          return v > 0 ? v - 1 : Math.floor(positions.length / 3) + v;
         });
 
-        // Fan triangulation for quads/n-gons
-        for (let i = 1; i < vIndices.length - 1; i++) {
-          faces.push(vIndices[0], vIndices[i], vIndices[i + 1]);
+        // Fan triangulation for quads / n-gons
+        for (let j = 1; j < vIndices.length - 1; j++) {
+          if (!isNaN(vIndices[0]) && !isNaN(vIndices[j]) && !isNaN(vIndices[j + 1])) {
+            faces.push(vIndices[0], vIndices[j], vIndices[j + 1]);
+          }
         }
       }
     }
 
+    if (positions.length === 0) {
+      throw new Error('OBJ model contained no vertices.');
+    }
+
     const geom = new THREE.BufferGeometry();
     geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    geom.setIndex(faces);
+    if (faces.length > 0) geom.setIndex(faces);
     geom.computeVertexNormals();
     return geom;
   }
 
   /**
-   * Direct 3MF parser using JSZip and XML parsing
+   * Direct 3MF parser using JSZip and XML parsing with full namespace and multi-mesh support
    */
   async parse3MFBuffer(buffer) {
     if (!window.JSZip) {
@@ -756,44 +1240,60 @@ class App {
     }
 
     const zip = await window.JSZip.loadAsync(buffer);
-    let modelFile = zip.file('3D/3dmodel.model') || zip.file('3d/3dmodel.model');
-    if (!modelFile) {
-      const modelKeys = Object.keys(zip.files).filter((k) => k.endsWith('.model'));
-      if (modelKeys.length > 0) modelFile = zip.file(modelKeys[0]);
-    }
-
-    if (!modelFile) {
+    const modelFiles = Object.keys(zip.files).filter((k) => k.toLowerCase().endsWith('.model'));
+    if (modelFiles.length === 0) {
       throw new Error('No .model geometry found in 3MF file.');
     }
 
-    const xmlText = await modelFile.async('text');
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(xmlText, 'application/xml');
-
-    const vertices = xmlDoc.getElementsByTagName('vertex');
-    const triangles = xmlDoc.getElementsByTagName('triangle');
-
     const positions = [];
-    for (let i = 0; i < vertices.length; i++) {
-      positions.push(
-        parseFloat(vertices[i].getAttribute('x') || 0),
-        parseFloat(vertices[i].getAttribute('y') || 0),
-        parseFloat(vertices[i].getAttribute('z') || 0)
-      );
+    const indices = [];
+    const parser = new DOMParser();
+
+    for (const mf of modelFiles) {
+      const xmlText = await zip.file(mf).async('text');
+      const xmlDoc = parser.parseFromString(xmlText, 'application/xml');
+
+      // Query elements with standard and wildcard namespace selectors
+      const getElements = (parent, tag) => {
+        let list = parent.getElementsByTagName(tag);
+        if (!list || list.length === 0) {
+          list = parent.getElementsByTagNameNS('*', tag);
+        }
+        return list;
+      };
+
+      const meshes = getElements(xmlDoc, 'mesh');
+      const meshList = meshes && meshes.length > 0 ? Array.from(meshes) : [xmlDoc];
+
+      for (const mesh of meshList) {
+        const vertices = getElements(mesh, 'vertex');
+        const triangles = getElements(mesh, 'triangle');
+        const vertexOffset = positions.length / 3;
+
+        for (let i = 0; i < vertices.length; i++) {
+          positions.push(
+            parseFloat(vertices[i].getAttribute('x') || '0'),
+            parseFloat(vertices[i].getAttribute('y') || '0'),
+            parseFloat(vertices[i].getAttribute('z') || '0')
+          );
+        }
+
+        for (let i = 0; i < triangles.length; i++) {
+          const v1 = parseInt(triangles[i].getAttribute('v1') || '0', 10);
+          const v2 = parseInt(triangles[i].getAttribute('v2') || '0', 10);
+          const v3 = parseInt(triangles[i].getAttribute('v3') || '0', 10);
+          indices.push(vertexOffset + v1, vertexOffset + v2, vertexOffset + v3);
+        }
+      }
     }
 
-    const indices = [];
-    for (let i = 0; i < triangles.length; i++) {
-      indices.push(
-        parseInt(triangles[i].getAttribute('v1') || 0, 10),
-        parseInt(triangles[i].getAttribute('v2') || 0, 10),
-        parseInt(triangles[i].getAttribute('v3') || 0, 10)
-      );
+    if (positions.length === 0) {
+      throw new Error('3MF model contained no vertices.');
     }
 
     const geom = new THREE.BufferGeometry();
     geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    geom.setIndex(indices);
+    if (indices.length > 0) geom.setIndex(indices);
     geom.computeVertexNormals();
     return geom;
   }
