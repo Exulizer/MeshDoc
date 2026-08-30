@@ -4,7 +4,6 @@
 [![License: Custom](https://img.shields.io/badge/License-Source--Available-yellow.svg?style=flat-square)](LICENSE)
 [![Zero-Upload](https://img.shields.io/badge/Privacy-100%25%20Zero--Upload-emerald.svg?style=flat-square)](https://meshdoc.svender3d.de/)
 [![WebGL: Three.js](https://img.shields.io/badge/3D-Three.js%20WebGL-black.svg?style=flat-square)](https://threejs.org/)
-[![Server: Hetzner](https://img.shields.io/badge/Backend-Hetzner%20PHP%20Mailer-red.svg?style=flat-square)](https://www.hetzner.com/)
 
 <p align="center">
   <img src="og-image.jpg" alt="MeshDoc — 3D Print Mesh Diagnostics & Auto-Repair" width="100%" />
@@ -59,40 +58,6 @@
 * **ASCII STL:** Human-readable STL format.
 * **3MF:** Modern 3D Manufacturing Format container packaging.
 * **Wavefront OBJ:** Universal 3D polygonal geometry.
-
-### 7. 📬 Hetzner-Server Backend (`contact.php`)
-* Secure PHP backend for Hetzner Webhosting & Cloud servers.
-* Anti-spam honeypot, header injection protection, rate limiting, and SPF/DMARC compliant delivery to `info@svender3d.de`.
-
----
-
-## 🚀 Quick Start & Local Execution
-
-No build step or Node.js environment required!
-
-### With Python:
-```bash
-# Clone the repository
-git clone https://github.com/Exulizer/MeshDoc.git
-cd MeshDoc
-
-# Run local HTTP server
-python -m http.server 8080
-```
-Open **[http://localhost:8080](http://localhost:8080)** in your browser.
-
-### With Node.js (npx):
-```bash
-npx serve .
-```
-
----
-
-## 🌐 Deployment to Hetzner Webhosting
-
-1. Connect via SFTP to your Hetzner Webhosting (konsoleH) or VPS.
-2. Upload all files into your domain's public document root (e.g. `public_html/` or `www/`).
-3. Done! The web application and the PHP mailer backend (`contact.php`) work instantly out-of-the-box.
 
 ---
 
