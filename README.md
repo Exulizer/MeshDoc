@@ -12,7 +12,7 @@
 > **100% Client-Side 3D Mesh Diagnostics & Auto-Repair Engine for Additive Manufacturing & 3D Printing.**
 > Automated repair of broken STL, OBJ, and 3MF files directly in browser memory — Zero-Upload, no cloud dependencies, maximum privacy.
 
-🌐 **Website & Live Tool:** [https://meshdoc.svender3d.de/](https://meshdoc.svender3d.de/)
+🌐 **Website & Live Tool:** [https://www.meshdoc.de/](https://www.meshdoc.de/)
 
 ---
 
