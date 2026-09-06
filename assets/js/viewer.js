@@ -138,41 +138,54 @@ export class Viewport3D {
   }
 
   setupLighting() {
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-    this.scene.add(ambientLight);
+    this.ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    this.scene.add(this.ambientLight);
 
-    const hemiLight = new THREE.HemisphereLight(0xdbeafe, 0x1e293b, 0.6);
-    this.scene.add(hemiLight);
+    this.hemiLight = new THREE.HemisphereLight(0xdbeafe, 0x1e293b, 0.6);
+    this.scene.add(this.hemiLight);
 
-    const keyLight = new THREE.DirectionalLight(0xffffff, 0.85);
-    keyLight.position.set(120, 200, 150);
-    this.scene.add(keyLight);
+    this.keyLight = new THREE.DirectionalLight(0xffffff, 0.85);
+    this.keyLight.position.set(120, 200, 150);
+    this.scene.add(this.keyLight);
 
-    const fillLight = new THREE.DirectionalLight(0x38bdf8, 0.4);
-    fillLight.position.set(-150, 50, -120);
-    this.scene.add(fillLight);
+    this.fillLight = new THREE.DirectionalLight(0x38bdf8, 0.4);
+    this.fillLight.position.set(-150, 50, -120);
+    this.scene.add(this.fillLight);
 
-    const rimLight = new THREE.DirectionalLight(0xa855f7, 0.3);
-    rimLight.position.set(0, -100, -100);
-    this.scene.add(rimLight);
+    this.rimLight = new THREE.DirectionalLight(0xa855f7, 0.3);
+    this.rimLight.position.set(0, -100, -100);
+    this.scene.add(this.rimLight);
   }
 
-  setupBuildBed() {
+  setupBuildBed(isLight = false) {
+    if (this.bedGrid) {
+      this.scene.remove(this.bedGrid);
+      this.bedGrid.traverse((child) => {
+        if (child.geometry) child.geometry.dispose();
+        if (child.material) {
+          if (Array.isArray(child.material)) child.material.forEach((m) => m.dispose());
+          else child.material.dispose();
+        }
+      });
+    }
+
     const bedGroup = new THREE.Group();
 
     // Bed Grid (220mm x 220mm standard build plate)
     const size = 220;
     const divisions = 22;
-    const grid = new THREE.GridHelper(size, divisions, 0x38bdf8, 0x1e293b);
+    const centerColor = isLight ? 0x0284c7 : 0x38bdf8;
+    const gridColor = isLight ? 0xcbd5e1 : 0x222f46;
+    const grid = new THREE.GridHelper(size, divisions, centerColor, gridColor);
     grid.position.y = 0;
     bedGroup.add(grid);
 
-    // Semi-transparent build plate surface
+    // Build plate surface
     const planeGeo = new THREE.PlaneGeometry(size, size);
     const planeMat = new THREE.MeshBasicMaterial({
-      color: 0x121824,
+      color: isLight ? 0xffffff : 0x121824,
       transparent: true,
-      opacity: 0.6,
+      opacity: isLight ? 0.85 : 0.6,
       depthWrite: false,
     });
     const plate = new THREE.Mesh(planeGeo, planeMat);
@@ -180,8 +193,87 @@ export class Viewport3D {
     plate.position.y = -0.05;
     bedGroup.add(plate);
 
+    // Build plate border frame
+    const frameGeo = new THREE.EdgesGeometry(planeGeo);
+    const frameMat = new THREE.LineBasicMaterial({
+      color: isLight ? 0x94a3b8 : 0x38bdf8,
+      transparent: true,
+      opacity: isLight ? 0.7 : 0.4,
+    });
+    const frame = new THREE.LineSegments(frameGeo, frameMat);
+    frame.rotation.x = -Math.PI / 2;
+    frame.position.y = -0.04;
+    bedGroup.add(frame);
+
     this.bedGrid = bedGroup;
+    this.bedGrid.visible = this.showBed;
     this.scene.add(bedGroup);
+  }
+
+  setTheme(theme) {
+    const isLight = theme === 'light';
+    const bgColor = isLight ? 0xedf2f7 : 0x0a0d14;
+    const bgCss = isLight ? '#edf2f7' : '#0a0d14';
+
+    if (this.scene) {
+      this.scene.background = new THREE.Color(bgColor);
+    }
+    if (this.renderer) {
+      this.renderer.setClearColor(bgColor, 1);
+      if (this.renderer.domElement) {
+        this.renderer.domElement.style.background = bgCss;
+      }
+    }
+
+    // Update Lighting for Light / Dark environment
+    if (this.hemiLight) {
+      if (isLight) {
+        this.hemiLight.color.setHex(0xffffff);
+        this.hemiLight.groundColor.setHex(0xcbd5e1);
+        this.hemiLight.intensity = 0.75;
+      } else {
+        this.hemiLight.color.setHex(0xdbeafe);
+        this.hemiLight.groundColor.setHex(0x1e293b);
+        this.hemiLight.intensity = 0.6;
+      }
+    }
+    if (this.fillLight) {
+      this.fillLight.color.setHex(isLight ? 0x93c5fd : 0x38bdf8);
+      this.fillLight.intensity = isLight ? 0.35 : 0.4;
+    }
+    if (this.rimLight) {
+      this.rimLight.intensity = isLight ? 0.15 : 0.3;
+    }
+
+    // Update Build Bed Colors
+    this.setupBuildBed(isLight);
+
+    // Update Materials for crisp contrast
+    if (this.materials) {
+      if (this.materials.original) {
+        this.materials.original.color.setHex(isLight ? 0x0284c7 : 0x38bdf8);
+        this.materials.original.needsUpdate = true;
+      }
+      if (this.materials.repaired) {
+        this.materials.repaired.color.setHex(isLight ? 0x059669 : 0x10b981);
+        this.materials.repaired.needsUpdate = true;
+      }
+      if (this.materials.wireframe) {
+        this.materials.wireframe.color.setHex(isLight ? 0x334155 : 0x94a3b8);
+        this.materials.wireframe.opacity = isLight ? 0.5 : 0.35;
+        this.materials.wireframe.needsUpdate = true;
+      }
+      if (this.materials.openEdge) {
+        this.materials.openEdge.color.setHex(isLight ? 0xdc2626 : 0xef4444);
+        this.materials.openEdge.needsUpdate = true;
+      }
+      if (this.materials.nonManifoldEdge) {
+        this.materials.nonManifoldEdge.color.setHex(isLight ? 0xd97706 : 0xf59e0b);
+        this.materials.nonManifoldEdge.needsUpdate = true;
+      }
+    }
+
+    this.requestRender();
   }
 
   requestRender() {

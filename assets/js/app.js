@@ -29,8 +29,61 @@ class App {
     const canvasContainer = document.getElementById('viewportWrapper');
     this.viewer = new Viewport3D(canvasContainer);
 
+    this.initTheme();
     this.bindEvents();
     this.loadSampleModel('brokenCube');
+  }
+
+  initTheme() {
+    const btnThemeToggle = document.getElementById('btnThemeToggle');
+    let savedTheme = 'dark';
+    try {
+      savedTheme = localStorage.getItem('mesh3d_theme') || 'dark';
+    } catch (e) {
+      savedTheme = 'dark';
+    }
+    this.applyTheme(savedTheme);
+
+    if (btnThemeToggle) {
+      btnThemeToggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        this.applyTheme(newTheme);
+      });
+    }
+  }
+
+  applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    try {
+      localStorage.setItem('mesh3d_theme', theme);
+    } catch (e) {
+      console.warn('LocalStorage not available for theme:', e);
+    }
+
+    if (this.viewer && typeof this.viewer.setTheme === 'function') {
+      this.viewer.setTheme(theme);
+    }
+
+    const btn = document.getElementById('btnThemeToggle');
+    if (btn) {
+      const isLight = theme === 'light';
+      const label = isLight ? (I18n.t('themeToggleDark') || 'Zu dunklem Design wechseln') : (I18n.t('themeToggleLight') || 'Zu hellem Design wechseln');
+      btn.setAttribute('title', label);
+      btn.setAttribute('aria-label', label);
+    }
+  }
+
+  onLanguageChange(lang) {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    const btn = document.getElementById('btnThemeToggle');
+    if (btn) {
+      const isLight = currentTheme === 'light';
+      const label = isLight ? (I18n.t('themeToggleDark') || 'Zu dunklem Design wechseln') : (I18n.t('themeToggleLight') || 'Zu hellem Design wechseln');
+      btn.setAttribute('title', label);
+      btn.setAttribute('aria-label', label);
+    }
   }
 
   bindEvents() {
@@ -306,6 +359,18 @@ class App {
    * Called by I18n when user switches language
    */
   onLanguageChange(lang) {
+    const smoothSlider = document.getElementById('smoothIntensity');
+    const smoothVal = document.getElementById('smoothIntensityValue');
+    if (smoothSlider && smoothVal) {
+      const intensityMap = {
+        '1': I18n.t('levelLight'),
+        '2': I18n.t('levelMedium'),
+        '3': I18n.t('levelStrong'),
+        '4': I18n.t('levelUltra')
+      };
+      smoothVal.textContent = intensityMap[smoothSlider.value] || I18n.t('levelMedium');
+    }
+
     if (this.activeAnalysis) {
       const isOriginal = this.viewer.activeMeshType !== 'repaired';
       this.runAnalysis(isOriginal ? this.originalGeometry : this.repairedGeometry, isOriginal);

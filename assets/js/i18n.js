@@ -7,10 +7,12 @@ export const translations = {
   de: {
     // Header & Meta
     skipToContent: "Zum Inhalt springen",
+    pageTitle: "MeshDoc – Kostenlose Online 3D-Mesh Diagnose & STL Reparatur",
+    ogTitle: "MeshDoc – Kostenlose Online 3D-Mesh Diagnose & STL Reparatur",
     appTitle: "MeshDoc – STL Repair & Mesh Diagnose Tool",
     appSubtitle: "Fehlerhafte STL-Dateien analysieren, reparieren und slicerfertig exportieren.",
     appDescription: "MeshDoc ist ein spezialisiertes Browser-Werkzeug für 3D-Druck-Anwender zur schnellen Reparatur defekter STL-, OBJ- und 3MF-Meshes. Die Anwendung schließt offene Netzlöcher, korrigiert Non-Manifold-Kanten und richtet invertierte Normalen automatisch für fehlerfreies Slicing aus. Alle Rechenschritte erfolgen zu 100% lokal auf deinem Gerät ohne Cloud-Upload.",
-    metaDescription: "Repariere fehlerhafte STL-Dateien kostenlos im Browser – automatische Korrektur von Löchern, Non-Manifold-Kanten & invertierten Normalen für 3D-Druck.",
+    metaDescription: "Kostenlos & Zero-Upload: Repariere 3D-Dateien 100% lokal im Browser. Automatische Korrektur von Non-Manifold-Kanten, Löchern & Normalen für STL, OBJ und 3MF.",
     privacyBadge: "100% Lokale Verarbeitung (Zero-Upload)",
     contactBtn: "✉️ Kontakt",
 
@@ -68,6 +70,18 @@ export const translations = {
     diagDegenerateDesc: "Löscht entartete Dreiecke ohne Flächeninhalt oder mit kollinearen Punkten. Null-Flächen können im Slicer mathematische Fehler auslösen und die Schichtberechnung verlangsamen oder zum Absturz bringen.",
     diagDisjointTitle: "Disjoint Shells (Isolierte Teilnetze)",
     diagDisjointDesc: "Identifiziert getrennte Körperfragmente und verbindet oder bereinigt diese. Unverbundene, in der Luft schwebende Teilnetze führen beim 3D-Druck zu Filament-Fäden (Spaghetti-Effekt) und Fehldrucken.",
+
+    // Section 3.5: Slicer Compatibility Hub
+    slicerHeading: "100% Kompatibel mit modernen 3D-Slicern",
+    slicerSubtitle: "Reparierte Meshes lassen sich nahtlos und fehlerfrei in alle marktführenden Slicer-Programme importieren.",
+    slicerBambuTitle: "Bambu Studio & Bambu Lab",
+    slicerBambuDesc: "Beseitigt 'Non-Manifold-Kanten erkannt' und offene Netzkanten für saubere Schichtberechnung ohne Druckfehler auf X1-, P1- und A1-Serien.",
+    slicerOrcaTitle: "OrcaSlicer",
+    slicerOrcaDesc: "Verhindert Schichtabriss und Hohlraum-Artefakte durch lückenlose planare Triangulierung und konsistente Flächennormalen.",
+    slicerPrusaTitle: "PrusaSlicer",
+    slicerPrusaDesc: "Erzeugt 100% wasserdichte Manifold-Volumenkörper, sodass PrusaSlicer saubere Perimeter ohne überkreuzte Werkzeugbahnen generiert.",
+    slicerCuraTitle: "Ultimaker Cura & Creality Print",
+    slicerCuraDesc: "Eliminiert 'Mesh ist nicht wasserdicht'-Warnungen und verhindert fehlerhaftes Weglassen von dünnen Wänden oder solidem Infill.",
 
     // Section 4: FAQ
     faqHeading: "Häufig gestellte Fragen zu MeshDoc",
@@ -187,6 +201,8 @@ export const translations = {
     // Footer & Header Navigation
     footerDisclaimer: 'MeshDoc • Ein Projekt von <a href="https://www.svender3d.de" target="_blank" rel="noopener" style="color: var(--accent-cyan); text-decoration: underline;">svender3d.de</a> • 100% Lokale Zero-Upload Engine • Keine Datenübertragung an Dritte.',
     navWhatsNew: "Was ist neu?",
+    themeToggleDark: "Zu dunklem Design wechseln",
+    themeToggleLight: "Zu hellem Design wechseln",
     linkWhatsNew: "Was ist neu? (v1.5)",
     linkGitHub: "GitHub",
     linkImpressum: "Impressum",
@@ -287,6 +303,10 @@ export const translations = {
     levelMedium: "Mittel (3 Passes)",
     levelStrong: "Stark (6 Passes)",
     levelUltra: "Ultra (10 Passes)",
+    smoothTickLight: "Leicht (1)",
+    smoothTickMedium: "Mittel (3)",
+    smoothTickStrong: "Stark (6)",
+    smoothTickUltra: "Ultra (10)",
 
     // Repair Animation Steps
     repairStep1: "🔍 Analysiere Grenzschleifen & Topologie...",
@@ -301,10 +321,12 @@ export const translations = {
   en: {
     // Header & Meta
     skipToContent: "Skip to content",
+    pageTitle: "MeshDoc – Free Online 3D Mesh Diagnostics & STL Repair Tool",
+    ogTitle: "MeshDoc – Free Online 3D Mesh Diagnostics & STL Repair Tool",
     appTitle: "MeshDoc – STL Repair & Mesh Diagnostics Tool",
     appSubtitle: "Analyze, repair and export defective STL files ready for slicing.",
     appDescription: "MeshDoc is a browser-based utility designed for 3D printing enthusiasts and engineers to repair broken STL, OBJ, and 3MF meshes. It automatically fixes non-manifold edges, caps open holes, and aligns inverted normals for error-free slicing. All processing runs 100% locally on your machine without cloud uploads.",
-    metaDescription: "Repair broken STL files for free in your browser – automated fixing of mesh holes, non-manifold edges & inverted surface normals for 3D printing slicers.",
+    metaDescription: "Free & Zero-Upload: Repair 3D meshes 100% locally in your browser. Automated fixing of non-manifold edges, holes & inverted normals for STL, OBJ and 3MF files.",
     privacyBadge: "100% Local Processing (Zero-Upload)",
     contactBtn: "✉️ Contact",
 
@@ -362,6 +384,18 @@ export const translations = {
     diagDegenerateDesc: "Eliminates zero-area triangles and collapsed collinear vertices. Degenerate faces can trigger math errors during slicing, frequently freezing or crashing slicer software.",
     diagDisjointTitle: "Disjoint Shells",
     diagDisjointDesc: "Identifies isolated mesh fragments and unifies or handles them consistently. Floating disconnected shells cause mid-air extrusion, spaghetti prints, and bed adhesion failures.",
+
+    // Section 3.5: Slicer Compatibility Hub
+    slicerHeading: "100% Compatible with Modern 3D Slicers",
+    slicerSubtitle: "Repaired watertight models import seamlessly without warnings into all leading slicing software.",
+    slicerBambuTitle: "Bambu Studio & Bambu Lab",
+    slicerBambuDesc: "Instantly eliminates 'Non-manifold edges detected' and open seam alerts for flawless toolpaths on X1, P1, and A1 series printers.",
+    slicerOrcaTitle: "OrcaSlicer",
+    slicerOrcaDesc: "Fixes missing infill and perimeter slicing artifacts with watertight hole ear-clipping and outward-aligned face normals.",
+    slicerPrusaTitle: "PrusaSlicer",
+    slicerPrusaDesc: "Restores true manifold solid geometry, enabling PrusaSlicer to generate clean perimeter toolpaths with zero micro-gaps.",
+    slicerCuraTitle: "Ultimaker Cura & Creality Print",
+    slicerCuraDesc: "Eliminates 'Mesh is not watertight' warnings, preventing missing perimeters, layer tears, and unexpected hollow prints.",
 
     // Section 4: FAQ
     faqHeading: "Frequently Asked Questions about MeshDoc",
@@ -481,6 +515,8 @@ export const translations = {
     // Footer & Header Navigation
     footerDisclaimer: 'MeshDoc • A project by <a href="https://www.svender3d.de" target="_blank" rel="noopener" style="color: var(--accent-cyan); text-decoration: underline;">svender3d.de</a> • 100% Local Zero-Upload Engine • No data sent to third parties.',
     navWhatsNew: "What's New",
+    themeToggleDark: "Switch to Dark Mode",
+    themeToggleLight: "Switch to Light Mode",
     linkWhatsNew: "What's New (v1.5)",
     linkGitHub: "GitHub",
     linkImpressum: "Legal Notice",
@@ -581,6 +617,10 @@ export const translations = {
     levelMedium: "Medium (3 Passes)",
     levelStrong: "Strong (6 Passes)",
     levelUltra: "Ultra (10 Passes)",
+    smoothTickLight: "Light (1)",
+    smoothTickMedium: "Medium (3)",
+    smoothTickStrong: "Strong (6)",
+    smoothTickUltra: "Ultra (10)",
 
     // Repair Animation Steps
     repairStep1: "🔍 Analyzing boundary loops & topology...",
@@ -597,12 +637,20 @@ export class I18n {
   static currentLang = 'en';
 
   static init() {
-    // Check localStorage, default to English
+    // 1. Check URL parameters first (?lang=de or ?lang=en)
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramLang = urlParams.get('lang');
+    
+    // 2. Check localStorage
     const saved = localStorage.getItem('mesh3d_lang_preference');
-    if (saved && (saved === 'de' || saved === 'en')) {
+
+    if (paramLang && (paramLang === 'de' || paramLang === 'en')) {
+      this.currentLang = paramLang;
+      localStorage.setItem('mesh3d_lang_preference', paramLang);
+    } else if (saved && (saved === 'de' || saved === 'en')) {
       this.currentLang = saved;
     } else {
-      this.currentLang = 'en'; // Standard is English
+      this.currentLang = 'en'; // Standard/Hauptsprache is English
     }
 
     this.applyLanguage(this.currentLang);
@@ -624,6 +672,20 @@ export class I18n {
     if (lang !== 'de' && lang !== 'en') return;
     this.currentLang = lang;
     localStorage.setItem('mesh3d_lang_preference', lang);
+
+    // Sync URL parameter cleanly without reloading
+    try {
+      const url = new URL(window.location);
+      if (lang === 'en') {
+        url.searchParams.delete('lang'); // clean canonical URL for English
+      } else {
+        url.searchParams.set('lang', lang);
+      }
+      window.history.replaceState({}, '', url);
+    } catch (e) {
+      // Ignore in non-browser environments
+    }
+
     this.applyLanguage(lang);
   }
 
@@ -631,11 +693,29 @@ export class I18n {
     const dict = translations[lang] || translations.en;
     document.documentElement.lang = lang;
 
+    // Update Page Title
+    if (dict.pageTitle) {
+      document.title = dict.pageTitle;
+      document.querySelector('meta[name="title"]')?.setAttribute('content', dict.pageTitle);
+    }
+
     // Update Meta Description
     if (dict.metaDescription) {
       document.querySelector('meta[name="description"]')?.setAttribute('content', dict.metaDescription);
       document.querySelector('meta[property="og:description"]')?.setAttribute('content', dict.metaDescription);
       document.querySelector('meta[property="twitter:description"]')?.setAttribute('content', dict.metaDescription);
+    }
+
+    // Update Open Graph & Twitter Titles
+    if (dict.ogTitle) {
+      document.querySelector('meta[property="og:title"]')?.setAttribute('content', dict.ogTitle);
+      document.querySelector('meta[property="twitter:title"]')?.setAttribute('content', dict.ogTitle);
+    }
+
+    // Update Open Graph Locale
+    const ogLocale = document.querySelector('meta[property="og:locale"]');
+    if (ogLocale) {
+      ogLocale.setAttribute('content', lang === 'de' ? 'de_DE' : 'en_US');
     }
 
     // Update Language Toggle buttons

@@ -1,9 +1,11 @@
 # MeshDoc 🩺 3D Print Mesh Repair & Analyzer
 
-[![Version](https://img.shields.io/badge/version-1.5.0-blue.svg?style=flat-square)](https://github.com/Exulizer/MeshDoc)
+[![Version](https://img.shields.io/badge/version-1.6.0-blue.svg?style=flat-square)](https://github.com/Exulizer/MeshDoc)
 [![License: Custom](https://img.shields.io/badge/License-Source--Available-yellow.svg?style=flat-square)](LICENSE)
-[![Zero-Upload](https://img.shields.io/badge/Privacy-100%25%20Zero--Upload-emerald.svg?style=flat-square)](https://meshdoc.svender3d.de/)
+[![Zero-Upload](https://img.shields.io/badge/Privacy-100%25%20Zero--Upload-emerald.svg?style=flat-square)](https://www.meshdoc.de/)
+[![Theme: Dark%20%2F%20Light](https://img.shields.io/badge/Theme-Dark%20%2F%20Light-blueviolet.svg?style=flat-square)](https://www.meshdoc.de/)
 [![WebGL: Three.js](https://img.shields.io/badge/3D-Three.js%20WebGL-black.svg?style=flat-square)](https://threejs.org/)
+[![Server: Hetzner](https://img.shields.io/badge/Backend-Hetzner%20PHP%20Mailer-red.svg?style=flat-square)](https://www.hetzner.com/)
 
 <p align="center">
   <img src="og-image.jpg" alt="MeshDoc — 3D Print Mesh Diagnostics & Auto-Repair" width="100%" />
@@ -18,15 +20,24 @@
 
 ## ✨ Features & Capabilities
 
-### 1. 🔒 100% Zero-Upload & Maximum Privacy (GDPR)
+### 1. 🌓 Dual Dark & Light Mode Theme Engine (v1.6)
+* **Zero-FOUC Theme Switcher:** Instant theme initialization before DOM render prevents any blinding white or dark flashes.
+* **WCAG AA/AAA Contrast Compliance:** Fully tuned high-contrast Light Mode palette ensuring crystal-clear text readability on all cards, badges, and diagnostic drawers, with Dark Mode as default.
+* **Streamlined Header:** Clean, uncluttered top navigation bar with unified controls and centralized language switcher.
+
+### 2. 🎨 Adaptive CAD Studio 3D Viewport (v1.6)
+* **Dynamic Three.js Environment:** Seamlessly switches between high-tech dark space and a bright, modern CAD studio background (`#edf2f7`).
+* **Adaptive Build Plate & Lighting:** Real-time adaptation of the 220x220 mm build plate grid, boundary frame, directional lighting, and contrast-tuned shaders for original and repaired meshes.
+
+### 3. 🔒 100% Zero-Upload & Maximum Privacy (GDPR)
 * All file operations (parsing, diagnostics, ear-clipping hole repair, vertex welding, and export) execute strictly **locally inside client browser memory** (`Float32Array`, `Blob`, `ArrayBuffer`).
 * No server uploads, no cloud dependencies, and no third-party CDNs (all fonts and Three.js modules are self-hosted).
 
-### 2. 🚀 Zero-Idle GPU & Demand-Driven WebGL Engine (v1.5)
+### 4. 🚀 Zero-Idle GPU & Demand-Driven WebGL Engine (v1.5)
 * **0% Idle GPU Utilization:** WebGL rendering loop pauses completely during stationary states, eliminating GPU fan noise, excessive power draw, and screen flickering.
 * **Optimized CAD 3-Point Lighting:** Crystal-clear topological inspection without the heavy VRAM depth-pass overhead of dynamic 2048 shadow maps.
 
-### 3. 📊 Two-Phase Vorher/Nachher Comparison Architecture (v1.5)
+### 5. 📊 Two-Phase Vorher/Nachher Comparison Architecture (v1.5)
 * **Pre-Repair Inspection:** Shows exact verified vertex/triangle counts and explains precise repair operations.
 * **Post-Repair Audit:** Displays full Before ➔ After comparison with exact delta badges (`±Δ`) and verified 100% Watertight / Manifold status.
 
@@ -58,6 +69,40 @@
 * **ASCII STL:** Human-readable STL format.
 * **3MF:** Modern 3D Manufacturing Format container packaging.
 * **Wavefront OBJ:** Universal 3D polygonal geometry.
+
+### 7. 📬 Hetzner-Server Backend (`contact.php`)
+* Secure PHP backend for Hetzner Webhosting & Cloud servers.
+* Anti-spam honeypot, header injection protection, rate limiting, and SPF/DMARC compliant delivery to `info@meshdoc.de`.
+
+---
+
+## 🚀 Quick Start & Local Execution
+
+No build step or Node.js environment required!
+
+### With Python:
+```bash
+# Clone the repository
+git clone https://github.com/Exulizer/MeshDoc.git
+cd MeshDoc
+
+# Run local HTTP server
+python -m http.server 8080
+```
+Open **[http://localhost:8080](http://localhost:8080)** in your browser.
+
+### With Node.js (npx):
+```bash
+npx serve .
+```
+
+---
+
+## 🌐 Deployment to Hetzner Webhosting
+
+1. Connect via SFTP to your Hetzner Webhosting (konsoleH) or VPS.
+2. Upload all files into your domain's public document root (e.g. `public_html/` or `www/`).
+3. Done! The web application and the PHP mailer backend (`contact.php`) work instantly out-of-the-box.
 
 ---
 

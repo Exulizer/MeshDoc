@@ -7,6 +7,14 @@ export function openModal(modalId) {
   if (modal) {
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
+    if (modalId === 'modalContact') {
+      const alertBox = document.getElementById('contactFormAlert');
+      if (alertBox) {
+        alertBox.style.display = 'none';
+        alertBox.innerHTML = '';
+        alertBox.className = 'contact-form-alert';
+      }
+    }
   }
 }
 

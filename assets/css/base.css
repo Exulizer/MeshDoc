@@ -112,22 +112,105 @@ body {
   max-width: 660px;
 }
 
+.hero-intro-banner {
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .privacy-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px;
+  padding: 0 10px;
+  height: 34px;
   background: var(--status-success-bg);
   border: 1px solid var(--status-success-border);
   border-radius: var(--radius-full);
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   font-weight: 600;
   color: var(--status-success);
+  white-space: nowrap;
 }
 
 .privacy-badge svg {
   width: 14px;
   height: 14px;
+  flex-shrink: 0;
+}
+
+/* Header Toolbar & Controls */
+.header-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  background: var(--bg-panel);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.theme-toggle-btn:hover {
+  background: var(--bg-hover);
+  color: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+}
+
+.theme-toggle-btn svg {
+  width: 17px;
+  height: 17px;
+  transition: transform var(--transition-fast);
+}
+
+.theme-toggle-btn:hover svg {
+  transform: rotate(15deg);
+}
+
+/* Theme Icon Visibility */
+.theme-toggle-btn .icon-sun {
+  display: block;
+}
+.theme-toggle-btn .icon-moon {
+  display: none;
+}
+
+[data-theme="light"] .theme-toggle-btn .icon-sun {
+  display: none !important;
+}
+[data-theme="light"] .theme-toggle-btn .icon-moon {
+  display: block !important;
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .header-toolbar {
+    justify-content: space-between;
+  }
 }
 
 /* Bento Grid Dashboard Layout */

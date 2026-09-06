@@ -100,7 +100,7 @@
 .viewer-card {
   height: 100%;
   min-height: 600px;
-  background: #0a0d14 !important;
+  background: #0a0d14;
   display: flex;
   flex-direction: column;
 }
@@ -112,7 +112,7 @@
   height: 100%;
   min-height: 540px;
   overflow: hidden;
-  background: #0a0d14 !important;
+  background: #0a0d14;
 }
 
 #viewportCanvas,
@@ -121,7 +121,7 @@
   height: 100% !important;
   display: block;
   outline: none;
-  background: #0a0d14 !important;
+  background: #0a0d14;
 }
 
 /* Viewer Floating Overlays */
@@ -711,7 +711,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
-  z-index: 9999;
+  z-index: 99999999;
   pointer-events: none;
 }
 
@@ -1289,5 +1289,430 @@
     padding: 10px 20px;
     font-size: 0.82rem;
   }
+}
+
+/* ==========================================================================
+   Light Mode Specific Enhancements & High Contrast Rules
+   ========================================================================== */
+[data-theme="light"] .hero-content h1,
+[data-theme="light"] .brand-text h1 {
+  background: linear-gradient(90deg, #0f172a 0%, #0284c7 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+[data-theme="light"] .hero-content .subtitle {
+  color: #334155 !important;
+  font-weight: 500;
+}
+
+[data-theme="light"] .hero-intro-banner {
+  background: #f0fdf4 !important;
+  border-color: #bbf7d0 !important;
+  color: #14532d !important;
+}
+
+[data-theme="light"] .version-tag {
+  background: #e2e8f0 !important;
+  color: #334155 !important;
+  border-color: #cbd5e1 !important;
+  font-weight: 600;
+}
+
+[data-theme="light"] .brand-link {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0284c7 !important;
+}
+[data-theme="light"] .brand-link:hover {
+  background: #f0f9ff !important;
+  border-color: #0284c7 !important;
+}
+
+/* Light Mode Printability / Optimization Card */
+[data-theme="light"] .printability-card {
+  background: #ffffff !important;
+  border-color: var(--border-default) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="light"] .printability-card.ready {
+  border-color: #86efac !important;
+  background: linear-gradient(180deg, rgba(34, 197, 94, 0.08) 0%, #ffffff 100%) !important;
+  box-shadow: 0 4px 14px rgba(34, 197, 94, 0.1) !important;
+}
+
+[data-theme="light"] .printability-card.not-ready {
+  border-color: #fca5a5 !important;
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.08) 0%, #ffffff 100%) !important;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.1) !important;
+}
+
+[data-theme="light"] .printability-badge.warning {
+  background: #fef3c7 !important;
+  color: #92400e !important;
+  border: 1px solid #fcd34d !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .printability-badge.good {
+  background: #dcfce7 !important;
+  color: #166534 !important;
+  border: 1px solid #86efac !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .printability-badge.bad {
+  background: #fee2e2 !important;
+  color: #991b1b !important;
+  border: 1px solid #fca5a5 !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .printability-desc {
+  color: #1e293b !important;
+  font-weight: 500;
+}
+
+[data-theme="light"] .printability-reasons-list {
+  border-top: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .reason-item.bad {
+  color: #b91c1c !important;
+  font-weight: 600;
+}
+
+[data-theme="light"] .reason-item.good {
+  color: #15803d !important;
+  font-weight: 600;
+}
+
+/* Light Mode Diagnostics Issues & Info Blocks */
+[data-theme="light"] .issue-item {
+  background: #ffffff !important;
+  border-color: var(--border-default) !important;
+}
+
+[data-theme="light"] .issue-item:hover {
+  background: #f8fafc !important;
+  border-color: #94a3b8 !important;
+}
+
+[data-theme="light"] .issue-name {
+  color: #0f172a !important;
+  font-weight: 600;
+}
+
+[data-theme="light"] .issue-detail-drawer {
+  border-top: 1px solid #e2e8f0 !important;
+  color: #334155 !important;
+}
+
+[data-theme="light"] .issue-info-block {
+  background: #f1f5f9 !important;
+  border-left: 2.5px solid #0284c7 !important;
+  color: #1e293b !important;
+}
+
+[data-theme="light"] .issue-info-block.problem {
+  border-left-color: #dc2626 !important;
+  background: #fef2f2 !important;
+}
+
+[data-theme="light"] .issue-info-block.problem .issue-info-title {
+  color: #991b1b !important;
+}
+
+[data-theme="light"] .issue-info-block.solution {
+  border-left-color: #16a34a !important;
+  background: #f0fdf4 !important;
+}
+
+[data-theme="light"] .issue-info-block.solution .issue-info-title {
+  color: #166534 !important;
+}
+
+/* Light Mode Bento Cards & Panels */
+[data-theme="light"] .bento-card {
+  background: #ffffff !important;
+  border-color: var(--border-default) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] .bento-header {
+  border-bottom: 1px solid #e2e8f0 !important;
+  background: #f8fafc !important;
+}
+
+[data-theme="light"] .bento-title {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .metric-box {
+  background: #ffffff !important;
+  border-color: var(--border-default) !important;
+}
+
+[data-theme="light"] .metric-label {
+  color: #475569 !important;
+  font-weight: 600;
+}
+
+[data-theme="light"] .metric-value {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .dropzone-container {
+  background: #ffffff !important;
+  border-color: #94a3b8 !important;
+}
+
+[data-theme="light"] .dropzone-container:hover,
+[data-theme="light"] .dropzone-container.drag-over {
+  background: #f0f9ff !important;
+  border-color: #0284c7 !important;
+}
+
+[data-theme="light"] .dropzone-icon {
+  background: #f1f5f9 !important;
+  border-color: var(--border-default) !important;
+  color: #0284c7 !important;
+}
+
+[data-theme="light"] .tag-badge {
+  background: #f1f5f9 !important;
+  border-color: var(--border-default) !important;
+  color: #334155 !important;
+}
+
+[data-theme="light"] .file-info-badge {
+  background: #f8fafc !important;
+  border-color: var(--border-default) !important;
+}
+
+[data-theme="light"] .tool-section,
+[data-theme="light"] .tool-section-card {
+  background: #f8fafc !important;
+  border-color: var(--border-default) !important;
+}
+
+[data-theme="light"] .tool-section-header,
+[data-theme="light"] .tool-section-card .section-header h2 {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .select-input {
+  background: #ffffff !important;
+  border-color: var(--border-default) !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .custom-range {
+  background: #e2e8f0 !important;
+}
+
+[data-theme="light"] .btn-secondary {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .btn-secondary:not(:disabled):hover {
+  background: #f1f5f9 !important;
+  border-color: #94a3b8 !important;
+}
+
+[data-theme="light"] .lang-switch-wrapper {
+  background: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .lang-btn {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .lang-btn:hover {
+  color: #0f172a !important;
+  background: #e2e8f0 !important;
+}
+
+[data-theme="light"] .lang-btn.active {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+}
+
+/* Light Mode Pipeline & Accordion */
+[data-theme="light"] .processing-pipeline {
+  background: #ffffff !important;
+  border-color: var(--border-default) !important;
+}
+
+[data-theme="light"] .pipeline-step {
+  color: #64748b !important;
+}
+[data-theme="light"] .pipeline-step.active {
+  color: #0284c7 !important;
+}
+[data-theme="light"] .pipeline-step.done {
+  color: #15803d !important;
+}
+
+[data-theme="light"] .diag-item {
+  background: #ffffff !important;
+  border-color: var(--border-default) !important;
+  border-left-color: #0284c7 !important;
+}
+
+[data-theme="light"] .diag-item:hover {
+  background: #f8fafc !important;
+  border-color: #0284c7 !important;
+  box-shadow: 0 4px 16px rgba(2, 132, 199, 0.12) !important;
+}
+
+[data-theme="light"] .diag-item h3 {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .diag-item p {
+  color: #334155 !important;
+}
+
+[data-theme="light"] .metric-card {
+  background: #ffffff !important;
+  border-color: var(--border-default) !important;
+}
+
+[data-theme="light"] .metric-card h3 {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .faq-accordion details {
+  background: #ffffff !important;
+  border-color: var(--border-default) !important;
+}
+
+[data-theme="light"] .faq-accordion details:hover {
+  border-color: #94a3b8 !important;
+}
+
+[data-theme="light"] .faq-accordion details[open] {
+  border-color: #0284c7 !important;
+  background: #f8fafc !important;
+}
+
+[data-theme="light"] .faq-accordion summary {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .faq-accordion p {
+  color: #334155 !important;
+}
+
+[data-theme="light"] .app-footer {
+  background: #ffffff !important;
+  border-color: var(--border-default) !important;
+  color: #475569 !important;
+}
+
+[data-theme="light"] .app-footer a {
+  color: #0284c7 !important;
+  font-weight: 500;
+}
+
+/* Light Mode Back to Top button */
+[data-theme="light"] .btn-back-to-top {
+  background: #ffffff !important;
+  border-color: var(--border-default) !important;
+  color: #0284c7 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-theme="light"] .btn-back-to-top:hover {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+  border-color: #0284c7 !important;
+}
+
+/* Light Mode 3D Viewport & Overlays */
+[data-theme="light"] .viewer-card {
+  background: #edf2f7 !important;
+  border-color: var(--border-default) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] .viewer-canvas-wrapper,
+[data-theme="light"] #viewportCanvas,
+[data-theme="light"] .viewer-canvas-wrapper canvas {
+  background: #edf2f7 !important;
+}
+
+[data-theme="light"] .viewer-mode-selector,
+[data-theme="light"] .viewer-tool-toggles {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+[data-theme="light"] .mode-btn {
+  color: #334155 !important;
+}
+[data-theme="light"] .mode-btn:hover {
+  color: #0f172a !important;
+  background: #f1f5f9 !important;
+}
+[data-theme="light"] .mode-btn.active {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25) !important;
+}
+
+[data-theme="light"] .tool-toggle-btn {
+  color: #475569 !important;
+}
+[data-theme="light"] .tool-toggle-btn:hover {
+  color: #0f172a !important;
+  background: #f1f5f9 !important;
+}
+[data-theme="light"] .tool-toggle-btn.active {
+  background: #e0f2fe !important;
+  border-color: #0284c7 !important;
+  color: #0284c7 !important;
+}
+
+[data-theme="light"] .viewer-watermark {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #475569 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+/* Light Mode Scan HUD Card & Overlay */
+[data-theme="light"] .repair-scan-overlay {
+  background: radial-gradient(circle at center, rgba(14, 165, 233, 0.12) 0%, rgba(241, 245, 249, 0.75) 80%) !important;
+}
+
+[data-theme="light"] .scan-hud-card {
+  background: rgba(255, 255, 255, 0.96) !important;
+  border-color: #0284c7 !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15), 0 0 20px rgba(2, 132, 199, 0.15) !important;
+}
+
+[data-theme="light"] .scan-hud-title {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .scan-hud-step {
+  color: #0284c7 !important;
+}
+
+[data-theme="light"] .scan-progress-track {
+  background: rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme="light"] .scan-hud-metrics {
+  color: #475569 !important;
 }
 
