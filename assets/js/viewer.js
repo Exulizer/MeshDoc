@@ -9,17 +9,20 @@ export class Viewport3D {
     this.renderer = null;
     this.controls = null;
     this.bedGrid = null;
+    this.frontLight = null;
 
     // Mesh references
     this.originalMesh = null;
     this.repairedMesh = null;
     this.activeMeshType = 'original'; // 'original' | 'repaired' | 'split'
     this.errorLinesGroup = new THREE.Group();
+    this.overhangGroup = new THREE.Group();
 
     // Visual options
     this.showWireframe = false;
     this.showBed = true;
     this.showErrors = true;
+    this.showOverhangs = false;
 
     // Materials
     this.materials = {
@@ -40,8 +43,6 @@ export class Viewport3D {
       wireframe: new THREE.MeshBasicMaterial({
         color: 0x94a3b8,
         wireframe: true,
-        transparent: true,
-        opacity: 0.35,
       }),
       openEdge: new THREE.LineBasicMaterial({
         color: 0xef4444,
@@ -54,6 +55,24 @@ export class Viewport3D {
         linewidth: 3,
         depthTest: false,
         transparent: true,
+      }),
+      overhang: new THREE.MeshBasicMaterial({
+        color: 0xef4444,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.85,
+        polygonOffset: true,
+        polygonOffsetFactor: -1,
+        polygonOffsetUnits: -1,
+      }),
+      overhangHeatmap: new THREE.MeshBasicMaterial({
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.88,
+        vertexColors: true,
+        polygonOffset: true,
+        polygonOffsetFactor: -1,
+        polygonOffsetUnits: -1,
       }),
     };
 
@@ -72,21 +91,22 @@ export class Viewport3D {
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x0a0d14);
 
-    // Camera
-    this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 5000);
+    // Camera with optimized near/far planes for high-precision Z-buffer resolution (eliminates Z-fighting)
+    this.camera = new THREE.PerspectiveCamera(45, width / height, 1, 3000);
     this.camera.position.set(150, 150, 150);
 
-    // Ultra-optimized WebGL Renderer (No heavy shadow maps, capped pixel ratio to prevent GPU stress)
+    // Ultra-optimized WebGL Renderer with full 32-bit floating point precision
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: false,
       powerPreference: 'default',
-      precision: 'mediump',
+      precision: 'highp',
     });
     this.renderer.setClearColor(0x0a0d14, 1);
     this.renderer.setSize(width, height);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
     this.renderer.shadowMap.enabled = false; // Disable heavy shadow maps (eliminates GPU overheating & screen flickering)
+    this.renderer.localClippingEnabled = true;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.05;
     this.renderer.domElement.id = 'viewportCanvas';
@@ -100,6 +120,14 @@ export class Viewport3D {
     this.controls.dampingFactor = 0.08;
     this.controls.maxDistance = 3000;
     this.controls.minDistance = 2;
+
+    // Mobile touch coordination:
+    // 1 finger = native page scrolling (never traps the user)
+    // 2 fingers = 3D rotation and pinch-zoom
+    this.controls.touches = {
+      ONE: null,
+      TWO: THREE.TOUCH.DOLLY_ROTATE
+    };
 
     this.controls.addEventListener('change', () => this.requestRender());
     this.controls.addEventListener('start', () => { this.isInteracting = true; });
@@ -116,6 +144,9 @@ export class Viewport3D {
 
     // Error lines group
     this.scene.add(this.errorLinesGroup);
+
+    // Mobile touch coordination: eliminates scroll-trap on small screens
+    this.setupMobileTouchHandling();
 
     // Resize listeners with debouncing
     this.resizeTimeout = null;
@@ -137,27 +168,104 @@ export class Viewport3D {
     requestAnimationFrame(this.animate);
   }
 
+  setupMobileTouchHandling() {
+    const canvas = this.renderer.domElement;
+    if (!canvas) return;
+
+    // By default, allow vertical page panning on touch devices so user is NEVER trapped
+    canvas.style.touchAction = 'pan-y';
+
+    const hint = document.getElementById('viewerTouchHint');
+    let hintTimeout = null;
+
+    const showHintBriefly = () => {
+      if (!hint) return;
+      hint.style.display = 'flex';
+      hint.style.opacity = '1';
+      clearTimeout(hintTimeout);
+      hintTimeout = setTimeout(() => {
+        hint.style.opacity = '0';
+        setTimeout(() => { if (hint) hint.style.display = 'none'; }, 350);
+      }, 3000);
+    };
+
+    // Auto-fade initial touch hint after 4 seconds
+    hintTimeout = setTimeout(() => {
+      if (hint) {
+        hint.style.opacity = '0';
+        setTimeout(() => { if (hint) hint.style.display = 'none'; }, 350);
+      }
+    }, 4000);
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    canvas.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        // 1 Finger = PURE NATIVE PAGE SCROLL: never block or trap the user!
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        canvas.style.touchAction = 'pan-y';
+      } else if (e.touches.length >= 2) {
+        // 2 Fingers = 3D ROTATION, ZOOM & PAN
+        canvas.style.touchAction = 'none';
+        if (this.container) this.container.classList.add('viewer-touch-active');
+        showHintBriefly();
+      }
+    }, { passive: true });
+
+    canvas.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 1) {
+        // 1 finger: allow page scroll. If user performs horizontal swipe, remind gently about 2 fingers
+        const dx = Math.abs(e.touches[0].clientX - touchStartX);
+        const dy = Math.abs(e.touches[0].clientY - touchStartY);
+        if (dx > 35 && dx > dy * 1.6) {
+          showHintBriefly();
+        }
+        canvas.style.touchAction = 'pan-y';
+      } else if (e.touches.length >= 2) {
+        // 2 fingers: prevent browser page zooming while manipulating 3D model
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    const endTouch = (e) => {
+      if (!e.touches || e.touches.length < 2) {
+        canvas.style.touchAction = 'pan-y';
+        if (this.container) this.container.classList.remove('viewer-touch-active');
+      }
+    };
+
+    canvas.addEventListener('touchend', endTouch, { passive: true });
+    canvas.addEventListener('touchcancel', endTouch, { passive: true });
+  }
+
   setupLighting() {
-    this.ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    this.ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
     this.scene.add(this.ambientLight);
 
-    this.hemiLight = new THREE.HemisphereLight(0xdbeafe, 0x1e293b, 0.6);
+    this.hemiLight = new THREE.HemisphereLight(0xffffff, 0x475569, 0.65);
     this.scene.add(this.hemiLight);
 
     this.keyLight = new THREE.DirectionalLight(0xffffff, 0.85);
     this.keyLight.position.set(120, 200, 150);
     this.scene.add(this.keyLight);
 
-    this.fillLight = new THREE.DirectionalLight(0x38bdf8, 0.4);
+    this.fillLight = new THREE.DirectionalLight(0xffffff, 0.35);
     this.fillLight.position.set(-150, 50, -120);
     this.scene.add(this.fillLight);
 
-    this.rimLight = new THREE.DirectionalLight(0xa855f7, 0.3);
+    // Front fill light (illuminates front facets neutrally)
+    this.frontLight = new THREE.DirectionalLight(0xffffff, 0.25);
+    this.frontLight.position.set(-80, 90, 180);
+    this.scene.add(this.frontLight);
+
+    this.rimLight = new THREE.DirectionalLight(0xffffff, 0.20);
     this.rimLight.position.set(0, -100, -100);
     this.scene.add(this.rimLight);
   }
 
-  setupBuildBed(isLight = false) {
+  setupBuildBed(isLight = (document.documentElement.getAttribute('data-theme') === 'light')) {
     if (this.bedGrid) {
       this.scene.remove(this.bedGrid);
       this.bedGrid.traverse((child) => {
@@ -172,37 +280,46 @@ export class Viewport3D {
     const bedGroup = new THREE.Group();
 
     // Bed Grid (220mm x 220mm standard build plate)
+    // Offset slightly below Y=0 with polygonOffset to prevent co-planar Z-fighting with models resting on the bed
     const size = 220;
     const divisions = 22;
     const centerColor = isLight ? 0x0284c7 : 0x38bdf8;
-    const gridColor = isLight ? 0xcbd5e1 : 0x222f46;
+    const gridColor = isLight ? 0x64748b : 0x222f46;
     const grid = new THREE.GridHelper(size, divisions, centerColor, gridColor);
-    grid.position.y = 0;
+    grid.position.y = -0.02;
+    if (grid.material) {
+      grid.material.polygonOffset = true;
+      grid.material.polygonOffsetFactor = 1;
+      grid.material.polygonOffsetUnits = 1;
+      grid.material.depthWrite = true;
+    }
     bedGroup.add(grid);
 
-    // Build plate surface
+    // Build plate surface (opaque with depthWrite and polygonOffset to eliminate transparent queue sorting artifacts)
     const planeGeo = new THREE.PlaneGeometry(size, size);
     const planeMat = new THREE.MeshBasicMaterial({
       color: isLight ? 0xffffff : 0x121824,
-      transparent: true,
-      opacity: isLight ? 0.85 : 0.6,
-      depthWrite: false,
+      depthWrite: true,
+      polygonOffset: true,
+      polygonOffsetFactor: 2,
+      polygonOffsetUnits: 2,
     });
     const plate = new THREE.Mesh(planeGeo, planeMat);
     plate.rotation.x = -Math.PI / 2;
-    plate.position.y = -0.05;
+    plate.position.y = -0.04;
     bedGroup.add(plate);
 
     // Build plate border frame
     const frameGeo = new THREE.EdgesGeometry(planeGeo);
     const frameMat = new THREE.LineBasicMaterial({
-      color: isLight ? 0x94a3b8 : 0x38bdf8,
-      transparent: true,
-      opacity: isLight ? 0.7 : 0.4,
+      color: isLight ? 0x334155 : 0x38bdf8,
+      polygonOffset: true,
+      polygonOffsetFactor: 1,
+      polygonOffsetUnits: 1,
     });
     const frame = new THREE.LineSegments(frameGeo, frameMat);
     frame.rotation.x = -Math.PI / 2;
-    frame.position.y = -0.04;
+    frame.position.y = -0.02;
     bedGroup.add(frame);
 
     this.bedGrid = bedGroup;
@@ -238,11 +355,16 @@ export class Viewport3D {
       }
     }
     if (this.fillLight) {
-      this.fillLight.color.setHex(isLight ? 0x93c5fd : 0x38bdf8);
-      this.fillLight.intensity = isLight ? 0.35 : 0.4;
+      this.fillLight.color.setHex(0xffffff);
+      this.fillLight.intensity = isLight ? 0.35 : 0.35;
     }
     if (this.rimLight) {
-      this.rimLight.intensity = isLight ? 0.15 : 0.3;
+      this.rimLight.color.setHex(0xffffff);
+      this.rimLight.intensity = isLight ? 0.15 : 0.20;
+    }
+    if (this.frontLight) {
+      this.frontLight.color.setHex(0xffffff);
+      this.frontLight.intensity = isLight ? 0.25 : 0.25;
     }
 
     // Update Build Bed Colors
@@ -315,15 +437,37 @@ export class Viewport3D {
    * @param {THREE.BufferGeometry} geometry
    */
   setOriginalGeometry(geometry) {
+    if (this.repairedMesh) {
+      this.repairedMesh.remove(this.overhangGroup);
+      this.scene.remove(this.repairedMesh);
+      if (this.repairedMesh.geometry) {
+        this.repairedMesh.geometry.dispose();
+      }
+      this.repairedMesh = null;
+    }
+
     if (this.originalMesh) {
       this.originalMesh.remove(this.errorLinesGroup);
+      this.originalMesh.remove(this.overhangGroup);
       this.scene.remove(this.originalMesh);
-      this.originalMesh.geometry.dispose();
+      if (this.originalMesh.geometry) {
+        this.originalMesh.geometry.dispose();
+      }
+      this.originalMesh = null;
     }
+
+    this.showWireframe = false;
+    this.materials.original.wireframe = false;
+    this.materials.repaired.wireframe = false;
+
+    this.clearOverhangHighlights();
+    this.clearErrorHighlights();
 
     this.originalMesh = new THREE.Mesh(geometry, this.materials.original);
     this.errorLinesGroup.position.set(0, 0, 0);
+    this.overhangGroup.position.set(0, 0, 0);
     this.originalMesh.add(this.errorLinesGroup);
+    this.originalMesh.add(this.overhangGroup);
     this.scene.add(this.originalMesh);
 
     this.switchViewMode('original');
@@ -338,6 +482,7 @@ export class Viewport3D {
    */
   setRepairedGeometry(geometry, isSmooth = false) {
     if (this.repairedMesh) {
+      this.repairedMesh.remove(this.overhangGroup);
       this.scene.remove(this.repairedMesh);
       this.repairedMesh.geometry.dispose();
     }
@@ -346,6 +491,8 @@ export class Viewport3D {
     this.materials.repaired.needsUpdate = true;
 
     this.repairedMesh = new THREE.Mesh(geometry, this.materials.repaired);
+    this.overhangGroup.position.set(0, 0, 0);
+    this.repairedMesh.add(this.overhangGroup);
     this.scene.add(this.repairedMesh);
 
     this.switchViewMode('repaired');
@@ -397,6 +544,54 @@ export class Viewport3D {
   }
 
   /**
+   * Update overhang highlights on model (traffic-light heatmap or red facet overlay)
+   * @param {Float32Array} trianglesBuffer - Float32Array containing x,y,z of 3 vertices per overhang triangle
+   * @param {Float32Array} [colorsBuffer] - Float32Array containing r,g,b of 3 vertices per overhang triangle
+   */
+  setOverhangHighlights(trianglesBuffer, colorsBuffer) {
+    this.clearOverhangHighlights();
+    this.overhangGroup.position.set(0, 0, 0);
+
+    if (!trianglesBuffer || trianglesBuffer.length === 0) {
+      this.requestRender();
+      return;
+    }
+
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(trianglesBuffer, 3));
+    
+    const hasColors = colorsBuffer && colorsBuffer.length > 0;
+    if (hasColors) {
+      geo.setAttribute('color', new THREE.BufferAttribute(colorsBuffer, 3));
+    }
+    geo.computeVertexNormals();
+
+    const mat = hasColors ? this.materials.overhangHeatmap : this.materials.overhang;
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.renderOrder = 998;
+    this.overhangMesh = mesh;
+    this.overhangGroup.add(mesh);
+
+    const activeTarget = (this.activeMeshType === 'repaired' && this.repairedMesh) ? this.repairedMesh : this.originalMesh;
+    if (activeTarget && this.overhangGroup.parent !== activeTarget) {
+      activeTarget.add(this.overhangGroup);
+    }
+
+    this.overhangGroup.visible = this.showOverhangs;
+    this.requestRender();
+  }
+
+  clearOverhangHighlights() {
+    while (this.overhangGroup.children.length > 0) {
+      const child = this.overhangGroup.children[0];
+      this.overhangGroup.remove(child);
+      if (child.geometry) child.geometry.dispose();
+    }
+    this.overhangMesh = null;
+    this.requestRender();
+  }
+
+  /**
    * Switch viewport rendering mode
    * @param {'original'|'repaired'|'split'} mode
    */
@@ -412,13 +607,20 @@ export class Viewport3D {
       this.repairedMesh.position.set(0, 0, 0);
     }
     this.errorLinesGroup.position.set(0, 0, 0);
+    this.overhangGroup.position.set(0, 0, 0);
 
     if (mode === 'original' && this.originalMesh) {
       this.originalMesh.visible = true;
       this.errorLinesGroup.visible = this.showErrors;
+      if (this.overhangGroup.parent !== this.originalMesh) {
+        this.originalMesh.add(this.overhangGroup);
+      }
     } else if (mode === 'repaired' && this.repairedMesh) {
       this.repairedMesh.visible = true;
       this.errorLinesGroup.visible = false;
+      if (this.overhangGroup.parent !== this.repairedMesh) {
+        this.repairedMesh.add(this.overhangGroup);
+      }
     } else if (mode === 'split' && this.originalMesh && this.repairedMesh) {
       this.originalMesh.visible = true;
       this.repairedMesh.visible = true;
@@ -433,6 +635,7 @@ export class Viewport3D {
       this.errorLinesGroup.visible = this.showErrors;
     }
 
+    this.overhangGroup.visible = this.showOverhangs;
     this.requestRender();
   }
 
@@ -465,6 +668,16 @@ export class Viewport3D {
   }
 
   /**
+   * Toggle overhang highlights
+   */
+  toggleOverhangs(enabled) {
+    this.showOverhangs = enabled !== undefined ? enabled : !this.showOverhangs;
+    this.overhangGroup.visible = this.showOverhangs;
+    this.requestRender();
+    return this.showOverhangs;
+  }
+
+  /**
    * Fit camera view to active object
    */
   fitCameraToMesh(mesh) {
@@ -475,15 +688,16 @@ export class Viewport3D {
     const sphere = mesh.geometry.boundingSphere;
     if (!sphere) return;
 
-    const radius = Math.max(sphere.radius, 45);
+    const radius = Math.max(sphere.radius, 18);
     const center = sphere.center.clone();
+    center.applyMatrix4(mesh.matrixWorld);
 
     const fov = this.camera.fov * (Math.PI / 180);
-    const distance = Math.abs(radius / Math.sin(fov / 2)) * 1.25;
+    const distance = Math.abs(radius / Math.sin(fov / 2)) * 1.35;
 
-    this.camera.position.set(center.x + distance * 0.75, center.y + distance * 0.65, center.z + distance * 0.9);
-    this.controls.target.set(center.x, Math.max(0, center.y * 0.5), center.z);
-    this.camera.lookAt(this.controls.target);
+    this.camera.position.set(center.x + distance * 0.75, center.y + distance * 0.65, center.z + distance * 0.95);
+    this.controls.target.copy(center);
+    this.camera.lookAt(center);
     this.controls.update();
     this.requestRender();
   }
@@ -512,6 +726,39 @@ export class Viewport3D {
     }
     this.camera.lookAt(target);
     this.controls.update();
+    this.requestRender();
+  }
+
+  /**
+   * Reset all viewport tools, highlights, camera and active modes to pristine default
+   */
+  resetViewportState() {
+    this.showWireframe = false;
+    this.materials.original.wireframe = false;
+    this.materials.repaired.wireframe = false;
+
+    this.showBed = true;
+    if (this.bedGrid) this.bedGrid.visible = true;
+
+    this.showErrors = true;
+    this.errorLinesGroup.visible = true;
+
+    this.showOverhangs = false;
+    this.overhangGroup.visible = false;
+
+    if (this.repairedMesh) {
+      this.repairedMesh.remove(this.overhangGroup);
+      this.scene.remove(this.repairedMesh);
+      if (this.repairedMesh.geometry) {
+        this.repairedMesh.geometry.dispose();
+      }
+      this.repairedMesh = null;
+    }
+
+    this.activeMeshType = 'original';
+    this.clearOverhangHighlights();
+    this.clearErrorHighlights();
+
     this.requestRender();
   }
 }

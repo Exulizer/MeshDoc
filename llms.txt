@@ -4,20 +4,20 @@
 
 ## Documentation
 
-- [Application Interface](https://meshdoc.svender3d.de/): Zero-upload browser-based 3D mesh diagnostics and repair engine.
-- [Sitemap](https://meshdoc.svender3d.de/sitemap.xml): Standard XML sitemap.
+- [Application Interface](https://www.meshdoc.de/): Zero-upload browser-based 3D mesh diagnostics and repair engine.
+- [Sitemap](https://www.meshdoc.de/sitemap.xml): Standard XML sitemap.
 - [Source Repository](https://github.com/Exulizer/MeshDoc): Open source codebase and documentation.
 
 ## Core Capabilities
 
-- [Mesh Diagnostics](https://meshdoc.svender3d.de/): Non-manifold edge detection, boundary hole counting, Euler characteristic verification, volume and area measurement.
-- [Automated Repair](https://meshdoc.svender3d.de/): Ear-clipping planar hole-capping, outward normal re-orientation, degenerate triangle removal, and vertex welding.
-- [Surface Smoothing](https://meshdoc.svender3d.de/): Volume-preserving Taubin smoothing and sagitta curvature subdivision with sharp edge protection.
-- [Polygon Decimation](https://meshdoc.svender3d.de/): Aspect-ratio preserving centroid clustering polygon reduction with non-destructive base geometry.
-- [Multi-Format Export](https://meshdoc.svender3d.de/): Export repaired models as Binary STL, ASCII STL, 3MF Package, or Wavefront OBJ.
-- [Material Calculation](https://meshdoc.svender3d.de/): Filament weight in grams and length in meters for PLA, PETG, ABS, and TPU with customizable infill.
+- [Mesh Diagnostics](https://www.meshdoc.de/): Non-manifold edge detection, boundary hole counting, Euler characteristic verification, volume and area measurement.
+- [Automated Repair](https://www.meshdoc.de/): Ear-clipping planar hole-capping, outward normal re-orientation, degenerate triangle removal, and vertex welding.
+- [Surface Smoothing](https://www.meshdoc.de/): Volume-preserving Taubin smoothing and sagitta curvature subdivision with sharp edge protection.
+- [Polygon Decimation](https://www.meshdoc.de/): Aspect-ratio preserving centroid clustering polygon reduction with non-destructive base geometry.
+- [Multi-Format Export](https://www.meshdoc.de/): Export repaired models as Binary STL, ASCII STL, 3MF Package, or Wavefront OBJ.
+- [Material Calculation](https://www.meshdoc.de/): Filament weight in grams and length in meters for PLA, PETG, ABS, and TPU with customizable infill.
 
 ## Optional
 
-- [Legal Notice](https://meshdoc.svender3d.de/): Provider identification and legal information.
-- [Privacy Policy](https://meshdoc.svender3d.de/): 100% local processing guarantee with zero server uploads.
+- [Legal Notice](https://www.meshdoc.de/): Provider identification and legal information.
+- [Privacy Policy](https://www.meshdoc.de/): 100% local processing guarantee with zero server uploads.

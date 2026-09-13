@@ -1,11 +1,25 @@
 User-agent: *
 Allow: /
+Disallow: /contact.php
 
-# AI Crawlers
+# Search Engine Crawlers
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+# AI & LLM Crawlers
 User-agent: GPTBot
 Allow: /
 
 User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
 Allow: /
 
 User-agent: Google-Extended
@@ -18,4 +32,4 @@ Allow: /
 # See /llms.txt for machine-readable documentation of this tool
 
 # XML Sitemap
-Sitemap: https://meshdoc.svender3d.de/sitemap.xml
+Sitemap: https://www.meshdoc.de/sitemap.xml

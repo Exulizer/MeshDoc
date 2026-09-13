@@ -203,13 +203,47 @@ body {
 }
 
 @media (max-width: 768px) {
+  .app-container {
+    padding: 8px;
+    padding-bottom: calc(var(--safe-bottom) + 8px);
+    gap: 10px;
+  }
   .app-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .brand-wrapper {
+    gap: 8px;
+  }
+  .brand-logo {
+    width: 32px;
+    height: 32px;
+  }
+  .brand-logo svg {
+    width: 18px;
+    height: 18px;
+  }
+  .brand-text h1 {
+    font-size: 1rem;
+  }
+  .brand-text p {
+    display: none;
   }
   .header-toolbar {
-    justify-content: space-between;
+    gap: 6px;
+  }
+  .hero-intro-banner {
+    padding: 8px 12px;
+    font-size: 0.74rem;
+    gap: 8px;
+  }
+  /* iOS Safari Auto-Zoom Prevention */
+  input, select, textarea {
+    font-size: 16px !important;
   }
 }
 
@@ -233,7 +267,18 @@ body {
 
 @media (max-width: 860px) {
   .dashboard-grid {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+  .viewer-card {
+    order: 1;
+  }
+  .right-sidebar {
+    order: 2;
+  }
+  .left-sidebar {
+    order: 3;
   }
 }
 

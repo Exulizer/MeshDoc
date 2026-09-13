@@ -115,6 +115,8 @@ export const translations = {
     issueNonManifold: "Non-Manifold Kanten",
     issueInverted: "Inkonsistente Normalen",
     issueDegenerates: "Degenerierte Dreiecke",
+    issueUnitScale: "Einheit & Skalierung",
+    issueOverhangs: "Überhänge & Support",
     cleanBadge: "0 (Sauber)",
     problemLabel: "Problem:",
     solutionLabel: "Lösung:",
@@ -151,11 +153,25 @@ export const translations = {
     issueDegeneratesDescProblem: "Dreiecke mit einer Fläche von 0 oder auf einer Linie liegenden Eckpunkten. Können den Slicer zum Absturz bringen.",
     issueDegeneratesDescSolution: "Null-Flächen-Dreiecke werden gefiltert und entfernt, und die umliegenden Index-Verknüpfungen werden repariert.",
 
+    issueUnitScaleDescProblem: "Sehr kleine (< 15 mm) oder ungewöhnlich riesige Abmessungen deuten auf einen Einheiten-Fehler beim CAD-Export hin (z. B. Modell in Zoll/Inches konstruiert, aber als mm interpretiert).",
+    issueUnitScaleDescSolution: "Mit der 1-Klick-Zoll-Konvertierung (× 25.4) wird das Modell auf die beabsichtigte metrische Größe skaliert und sofort neu zentriert.",
+    unitNormal: "1:1 (mm)",
+    unitSuspectedInch: "Zoll (Inch) vermutet",
+    unitSuspectedMmAsInch: "Falsche Einheit (zu groß)",
+
+    issueOverhangsDescProblem: "Flächen, die steiler als {angle}° vom Druckbett weg geneigt sind (bzw. flacher als {angle}° zum Horizont), können ohne Stützstrukturen (Support) absacken oder Fäden ziehen.",
+    issueOverhangsDescSolution: "Aktiviere im Slicer Stützstrukturen (z. B. Tree/Baum-Support) oder drehe das Modell (↻ 90° X/Y/Z), um die überhängende Fläche zu minimieren.",
+    overhangNone: "0% (Kein Support nötig)",
+    overhangBadge: "{percent}% (~{volume} cm³)",
+    btnShowOverhangsIn3D: "👁️ Überhänge im 3D-Modell anzeigen",
+
     // Viewport Overlays
+    viewerTouchHint: "Mit 2 Fingern 3D drehen & zoomen • 1 Finger zum Scrollen",
     modeOriginal: "Original",
     modeRepaired: "Repariert",
-    modeSplit: "Vergleich (Split)",
+    modeSplit: "Split",
     toggleErrorsTooltip: "Fehler-Highlighting (rote Kanten) ein/aus",
+    toggleOverhangsTooltip: "Überhang-Farbskala (Ampelsystem Grün/Gelb/Rot) ein/aus",
     toggleWireframeTooltip: "Drahtgittermodell (Wireframe) ein/aus",
     toggleBedTooltip: "Druckbett-Gitter ein/aus",
     resetCameraTooltip: "Kamera zurücksetzen (Iso)",
@@ -163,12 +179,19 @@ export const translations = {
 
     // Right Sidebar: Repair & Tools
     repairEngineTitle: "Reparatur & Export",
+    tabRepairTitle: "🛠️ Reparatur",
+    tabGeometryTitle: "📐 Geometrie",
+    tabRepairTooltip: "Auto-Reparatur, Materialberechnung & Export",
+    tabGeometryTooltip: "Druckbett-Ausrichtung, Skalierung & Geometrie",
     autoRepairSectionTitle: "Auto-Reparatur Engine",
     autoRepairSectionDesc: "Repariert Topologiefehler mit planarer Ohr-Triangulation und scharfer Kantenschattierung.",
     optCloseHoles: "Löcher schließen (Planar Ear-Clipping)",
     optFixNormals: "Normalen nach außen ausrichten",
     optWeldVerts: "Doppelte Vertices verschweißen",
     btnAutoRepair: "Auto-Reparatur starten",
+    mobileToolsBtn: "Werkzeuge",
+    tabModelDiagnosis: "Model-Diagnose",
+    tabToolsAndSettings: "Werkzeuge & Reparatur",
 
     // Positioning
     positioningTitle: "Druckbett-Ausrichtung & Position",
@@ -180,10 +203,33 @@ export const translations = {
     btnRotateY: "↻ 90° Y",
     btnRotateZ: "↻ 90° Z",
 
+    // Scale & Units
+    scaleTitle: "Skalierung & Einheiten",
+    scaleTitleTooltip: "Werkzeuge zur Einheiten-Konvertierung (Zoll / mm)",
+    btnScaleInchToMm: "Zoll ➔ mm (× 25.4)",
+    btnScaleMmToInch: "mm ➔ Zoll (/ 25.4)",
+    btnResetScale: "Originalgröße (1:1)",
+    btnQuickScaleInch: "⚡ In metrische Maße umrechnen (× 25.4)",
+
+    // Overhangs & Support Tools
+    overhangTitle: "Überhang- & Support-Schätzung",
+    overhangTitleTooltip: "Berechnet überhängende Druckflächen und das benötigte Stützmaterial",
+    overhangAngleLabel: "Support-Grenzwinkel:",
+    overhangAreaLabel: "Überhangfläche:",
+    supportVolumeLabel: "Geschätztes Supportvolumen:",
+    supportWeightLabel: "Support-Gewicht ({material}):",
+    btnToggleOverhangOverlay: "Überhang-Farbskala in 3D hervorheben",
+    overhangHeatmapTitle: "Überhang-Farbskala",
+    overhangSafeLabel: "Safe (< 35°)",
+    overhangWarnLabel: "Warnung",
+    overhangCritLabel: "Support nötig",
+
     // Decimation
     decimationTitle: "Polygon-Dezimierung",
     targetDensityLabel: "Ziel-Dichte:",
     btnDecimate: "Polygone reduzieren",
+    btnResetDecimate: "Zurücksetzen",
+    btnResetDecimateTooltip: "Dezimierung auf Standard zurücksetzen",
 
     // Material
     materialTitle: "Material- & Gewichtsberechnung",
@@ -203,7 +249,7 @@ export const translations = {
     navWhatsNew: "Was ist neu?",
     themeToggleDark: "Zu dunklem Design wechseln",
     themeToggleLight: "Zu hellem Design wechseln",
-    linkWhatsNew: "Was ist neu? (v1.5)",
+    linkWhatsNew: "Was ist neu? (v1.7)",
     linkGitHub: "GitHub",
     linkImpressum: "Impressum",
     linkDatenschutz: "Datenschutz",
@@ -211,6 +257,30 @@ export const translations = {
     linkSitemap: "Sitemap",
     linkCookieSettings: "Cookie-Einstellungen",
     modalWhatsNewTitle: "✨ Was ist neu? — Versionshinweise",
+    changelogBadgeLatest: "Aktuelle Version",
+    changelogV17Title: "Mobiles Redesign, 2-Finger-Gesten &amp; Überhang-Ampelsystem",
+    changelogV17Date: "September 2026",
+    changelogV17Item1: "<strong>Überhang-Ampelsystem &amp; Farbverlauf (Feature):</strong> Stufenloser Farbverlauf von Grün (sicher, &lt; 35°) über Gelb/Orange bis Rot (kritisch / Stützstruktur erforderlich) mit Live-HUD im 3D-Viewer und synchronisiertem Schwellenwert-Regler.",
+    changelogV17Item2: "<strong>2-Finger-Touch-Navigation auf Mobilgeräten (Feature):</strong> Mit 1 Finger lässt sich die Seite normal scrollen ohne Hängenbleiben; mit 2 Fingern wird das 3D-Modell stufenlos gedreht und gezoomt.",
+    changelogV17Item3: "<strong>Segmentierte Mobile-Dashboard-Tabs (Feature):</strong> Schnelles Umschalten zwischen „Modell-Diagnose“ und „Werkzeuge &amp; Reparatur“ direkt unter der 3D-Ansicht erspart langes Scrollen auf Smartphones.",
+    changelogV17Item4: "<strong>Mobile Schnellzugriffsleiste &amp; Tools-Sheet (Verbesserung):</strong> Fixierte Leiste am unteren Bildschirmrand für 1-Klick-Reparatur und Direktzugriff auf Werkzeuge (blendet vor dem Footer automatisch aus).",
+    changelogV17Item5: "<strong>Entzerrte Bedienelemente &amp; Touch-Regler (Verbesserung):</strong> Modus-Buttons oben links und vertikale Werkzeugleiste oben rechts schaffen über 150 px freien Raum im 3D-Viewer. Regler bieten 44 px Touch-Ziele und direkte Zahleneingabe.",
+    changelogV17Item6: "<strong>Vollständiger Reset bei neuem Modell (Bugfix):</strong> Das Laden einer neuen 3D-Datei setzt alle Diagnosewerte, Fehlerlinien, Überhang-Hervorhebungen und Dialoge vollständig zurück.",
+    changelogV17Item7: "<strong>Schwellenwert-Synchronisation (Bugfix):</strong> Änderungen des Stützwinkel-Schwellenwerts aktualisieren Facettenfarben und Stützvolumen nun sofort in Echtzeit.",
+    changelogV16Title: "Duale Dark/Light Design-Engine, Studio 3D-Viewport &amp; UI-Verschlankung",
+    changelogV16Date: "September 2026",
+    changelogV16Item1: "<strong>Duale Dark &amp; Light Design-Engine:</strong> Nahtloser Design-Umschalter im Header mit FOUC-freier Sofort-Initialisierung. Volle WCAG AA/AAA-konforme kontraststarke helle Farbpalette mit Dark Mode als Standard.",
+    changelogV16Item2: "<strong>Adaptiver CAD Studio 3D-Viewport:</strong> Three.js Canvas transformiert dynamisch in einen authentischen CAD-Studiohintergrund mit hellem Druckbett, kontrastoptimierten Modell-Shadern und mattierten schwebenden Bedienelementen.",
+    changelogV16Item3: "<strong>Verschlankter Header &amp; Toolbar:</strong> Bereinigte obere Navigation, integrierter Theme-Schalter, zentraler Sprachwechsler und Entfernung redundanter Links für maximale Arbeitsfokus.",
+    changelogV16Item4: "<strong>Domain- &amp; Mail-Migration zu meshdoc.de:</strong> Direkte Domain-Bindung an www.meshdoc.de mit aktualisiertem Hetzner-Mailer direkt an info@meshdoc.de.",
+    changelogV16Item5: "<strong>SEO- &amp; KI-Crawler-Architektur:</strong> Verbesserte semantische HTML5-Struktur, strukturierte JSON-LD Schemas, robots.txt, dynamische Sitemap und llms.txt.",
+    changelogV15Title: "Zero-Idle GPU-Engine, Vorher/Nachher-Vergleich &amp; UX-Umstrukturierung",
+    changelogV15Date: "August 2026",
+    changelogV15Item1: "<strong>Zero-Idle GPU &amp; Bedarfsorientiertes WebGL:</strong> WebGL-Renderschleife senkt GPU-Last im Leerlauf auf 0% (0 FPS bei Stillstand), verhindert Überhitzung, VRAM-Lastspitzen und Bildschirmflackern.",
+    changelogV15Item2: "<strong>Zwei-Phasen Vorher/Nachher-Vergleichsarchitektur:</strong> Datei-Upload zeigt exakte aktuelle Geometriewerte; nach Reparatur automatische Transformation in vollständige Vorher ➔ Nachher Delta-Analyse mit bestätigtem 100% Manifold-Status.",
+    changelogV15Item3: "<strong>Dezente schwebende Auto-Repair Schnelltaste:</strong> Elegantes Floating-Pill am unteren Bildschirmrand beim Scrollen für sofortige 1-Klick-Reparatur, ohne Seitenleisten-Werkzeuge zu verdecken.",
+    changelogV15Item4: "<strong>Sanfte Ease-In-Out Nach-Oben-Navigation:</strong> Präzise Zurück-nach-oben-Animation mit <code>easeInOutCubic</code> Verzögerungskurve (sanfter Start, fließendes Gleiten, sanftes Abbremsen).",
+    changelogV15Item5: "<strong>Semantische HTML5-Strukturierung &amp; On-Page SEO / JSON-LD:</strong> Vollständige semantische HTML5-Landmarks, H1–H3 Hierarchie, schema.org <code>WebApplication</code> &amp; <code>FAQPage</code> Schemas und 100% DE/EN Übersetzungsparität.",
 
     // Cookie Banner
     cookieTitle: "Privatsphäre & Datenschutzeinstellungen",
@@ -261,9 +331,13 @@ export const translations = {
     toastDroppedBed: "Modell auf Druckbett abgesetzt (Bodenkontakt)!",
     toastCenteredBed: "Modell mittig zentriert!",
     toastRotated: "Modell um 90° ({axis}) gedreht!",
+    toastScaledInchToMm: "Modell erfolgreich um Faktor 25.4 skaliert (Zoll ➔ mm)!",
+    toastScaledMmToInch: "Modell erfolgreich um Faktor 1/25.4 skaliert (mm ➔ Zoll)!",
+    toastScaleReset: "Modell-Skalierung auf Originalgröße (1:1) zurückgesetzt.",
     toastDecimating: "Reduziere Polygone auf {ratio}%...",
     toastDecimateSuccess: "Polygon-Dezimierung abgeschlossen!",
     toastDecimateFail: "Dezimierungsfehler: {error}",
+    toastDecimateReset: "Polygon-Dezimierung auf Standard zurückgesetzt.",
     toastNoModelExport: "Kein 3D-Modell zum Exportieren geladen.",
     toastDownloadedBinary: "Binary STL heruntergeladen!",
     toastDownloadedAscii: "ASCII STL heruntergeladen!",
@@ -293,6 +367,7 @@ export const translations = {
     smoothProtectEdges: "Scharfe CAD-Kanten schützen (> 30°)",
     btnSmoothMesh: "Oberfläche glätten",
     btnResetSmooth: "Zurücksetzen",
+    btnResetSmoothTooltip: "Glättung auf Standard zurücksetzen",
     btnSmoothingRunning: "Glätte Oberfläche...",
     toastSmoothSuccess: "Oberfläche erfolgreich geglättet!",
     toastSmoothReset: "Glättung auf Original zurückgesetzt.",
@@ -429,6 +504,8 @@ export const translations = {
     issueNonManifold: "Non-Manifold Edges",
     issueInverted: "Inconsistent Face Normals",
     issueDegenerates: "Degenerate Triangles",
+    issueUnitScale: "Units & Scale",
+    issueOverhangs: "Overhangs & Support",
     cleanBadge: "0 (Clean)",
     problemLabel: "Problem:",
     solutionLabel: "Solution:",
@@ -465,11 +542,25 @@ export const translations = {
     issueDegeneratesDescProblem: "Triangles with zero surface area or collinear points. These can freeze or crash slicer engines during perimeter generation.",
     issueDegeneratesDescSolution: "Filters out zero-area and collapsed facets, then rebuilds surrounding vertex index connectivity.",
 
+    issueUnitScaleDescProblem: "Very small (< 15 mm) or exceptionally huge dimensions indicate a unit mismatch during CAD export (e.g., model created in inches but imported as millimeters).",
+    issueUnitScaleDescSolution: "With 1-click inch conversion (× 25.4), the model is scaled to the intended metric size and immediately re-centered.",
+    unitNormal: "1:1 (mm)",
+    unitSuspectedInch: "Suspected Inch",
+    unitSuspectedMmAsInch: "Unit mismatch (too large)",
+
+    issueOverhangsDescProblem: "Surfaces tilted more than {angle}° from vertical (or shallower than {angle}° to horizontal) can sag or string without support structures.",
+    issueOverhangsDescSolution: "Enable support structures in your slicer (e.g. tree supports) or rotate the model (↻ 90° X/Y/Z) to minimize overhang area.",
+    overhangNone: "0% (No support needed)",
+    overhangBadge: "{percent}% (~{volume} cm³)",
+    btnShowOverhangsIn3D: "👁️ Highlight Overhangs in 3D",
+
     // Viewport Overlays
+    viewerTouchHint: "Use 2 fingers to rotate & zoom • 1 finger to scroll",
     modeOriginal: "Original",
     modeRepaired: "Repaired",
-    modeSplit: "Comparison (Split)",
+    modeSplit: "Split",
     toggleErrorsTooltip: "Toggle error highlights (red edges)",
+    toggleOverhangsTooltip: "Toggle overhang heatmap (Traffic-light Green/Yellow/Red)",
     toggleWireframeTooltip: "Toggle wireframe view",
     toggleBedTooltip: "Toggle build bed grid",
     resetCameraTooltip: "Reset camera (Isometric)",
@@ -477,12 +568,19 @@ export const translations = {
 
     // Right Sidebar: Repair & Tools
     repairEngineTitle: "Repair & Export",
+    tabRepairTitle: "🛠️ Repair",
+    tabGeometryTitle: "📐 Geometry",
+    tabRepairTooltip: "Auto-Repair, Material & Export",
+    tabGeometryTooltip: "Build bed alignment, scaling & geometry",
     autoRepairSectionTitle: "Auto-Repair Engine",
     autoRepairSectionDesc: "Repairs topological defects using planar ear-clipping triangulation and sharp facet shading.",
     optCloseHoles: "Close holes (Planar Ear-Clipping)",
     optFixNormals: "Align normals outwards",
     optWeldVerts: "Weld duplicate vertices",
     btnAutoRepair: "Start Auto-Repair",
+    mobileToolsBtn: "Tools",
+    tabModelDiagnosis: "Model Diagnostics",
+    tabToolsAndSettings: "Tools & Repair",
 
     // Positioning
     positioningTitle: "Build Bed Alignment & Position",
@@ -494,10 +592,33 @@ export const translations = {
     btnRotateY: "↻ 90° Y",
     btnRotateZ: "↻ 90° Z",
 
+    // Scale & Units
+    scaleTitle: "Scale & Units",
+    scaleTitleTooltip: "Unit conversion tools (Inch / mm)",
+    btnScaleInchToMm: "Inch ➔ mm (× 25.4)",
+    btnScaleMmToInch: "mm ➔ Inch (/ 25.4)",
+    btnResetScale: "Original Size (1:1)",
+    btnQuickScaleInch: "⚡ Convert to metric scale (× 25.4)",
+
+    // Overhangs & Support Tools
+    overhangTitle: "Overhang & Support Estimate",
+    overhangTitleTooltip: "Calculates overhang surfaces and required support material",
+    overhangAngleLabel: "Support Angle Threshold:",
+    overhangAreaLabel: "Overhang Area:",
+    supportVolumeLabel: "Est. Support Volume:",
+    supportWeightLabel: "Support Weight ({material}):",
+    btnToggleOverhangOverlay: "Highlight Overhang Heatmap in 3D",
+    overhangHeatmapTitle: "Overhang Heatmap",
+    overhangSafeLabel: "Safe (< 35°)",
+    overhangWarnLabel: "Warning",
+    overhangCritLabel: "Support needed",
+
     // Decimation
     decimationTitle: "Polygon Decimation",
     targetDensityLabel: "Target Density:",
     btnDecimate: "Reduce Polygons",
+    btnResetDecimate: "Reset",
+    btnResetDecimateTooltip: "Reset decimation to default",
 
     // Material
     materialTitle: "Material & Weight Calculation",
@@ -517,7 +638,7 @@ export const translations = {
     navWhatsNew: "What's New",
     themeToggleDark: "Switch to Dark Mode",
     themeToggleLight: "Switch to Light Mode",
-    linkWhatsNew: "What's New (v1.5)",
+    linkWhatsNew: "What's New (v1.7)",
     linkGitHub: "GitHub",
     linkImpressum: "Legal Notice",
     linkDatenschutz: "Privacy Policy",
@@ -525,6 +646,30 @@ export const translations = {
     linkSitemap: "Sitemap",
     linkCookieSettings: "Cookie Settings",
     modalWhatsNewTitle: "✨ What's New — Release Notes & Updates",
+    changelogBadgeLatest: "Latest Release",
+    changelogV17Title: "Mobile Redesign, 2-Finger Gestures &amp; Overhang Heatmap",
+    changelogV17Date: "September 2026",
+    changelogV17Item1: "<strong>Overhang Traffic-Light Heatmap (Feature):</strong> Continuous color gradient from Green (safe, &lt; 35°) through Yellow/Orange to Red (critical / support required) with live 3D viewport HUD and synchronized threshold slider.",
+    changelogV17Item2: "<strong>2-Finger Touch Navigation on Mobile (Feature):</strong> 1 finger scrolls the page freely without trapping your swipe; 2 fingers smoothly rotate and zoom the 3D model.",
+    changelogV17Item3: "<strong>Segmented Mobile Dashboard Tabs (Feature):</strong> Instant switching between \"Model Diagnostics\" and \"Tools &amp; Repair\" right below the 3D view, saving over 1,000 px of vertical scrolling.",
+    changelogV17Item4: "<strong>Mobile Quick Action Bar &amp; Tools Sheet (Improvement):</strong> Fixed bottom action bar for 1-click auto-repair and quick slider access (auto-hides cleanly before reaching the footer).",
+    changelogV17Item5: "<strong>Decluttered Controls &amp; Touch Sliders (Improvement):</strong> Repositioned mode buttons top-left and vertical tool strip top-right create over 150 px of free canvas space. Sliders feature 44 px touch targets with synchronized number inputs.",
+    changelogV17Item6: "<strong>Full State Reset on New Upload (Bugfix):</strong> Uploading a new 3D model now cleanly resets all diagnostic metrics, error lines, overhang highlights, and UI drawers.",
+    changelogV17Item7: "<strong>Threshold Slider Parameter Sync (Bugfix):</strong> Live support angle threshold adjustments now immediately update 3D facet colors and support volume metrics in real-time.",
+    changelogV16Title: "Dual Dark/Light Theme Engine, Studio 3D Viewport &amp; UI Decluttering",
+    changelogV16Date: "September 2026",
+    changelogV16Item1: "<strong>Dual Dark &amp; Light Theme Engine:</strong> Seamless theme toggle in the header with zero-FOUC instant initialization. Full WCAG AA/AAA compliant high-contrast light palette with Dark Mode as default.",
+    changelogV16Item2: "<strong>Adaptive CAD Studio 3D Viewport:</strong> Three.js canvas transforms dynamically into an authentic CAD studio background with bright build plate, contrast-tuned model shaders, and frosted floating controls.",
+    changelogV16Item3: "<strong>Streamlined Header &amp; Toolbar:</strong> Cleaned up top navigation, integrated theme toggle, centralized language switch, and removed redundant links for a distraction-free workspace.",
+    changelogV16Item4: "<strong>Domain &amp; Mail Migration to meshdoc.de:</strong> Direct domain binding to www.meshdoc.de with updated Hetzner mailer routing directly to info@meshdoc.de.",
+    changelogV16Item5: "<strong>SEO &amp; AI Crawler Architecture:</strong> Enhanced semantic HTML5 markup, structured JSON-LD schemas, robots.txt, dynamic sitemap, and llms.txt.",
+    changelogV15Title: "Zero-Idle GPU Engine, Two-Phase Comparison &amp; UX Restructuring",
+    changelogV15Date: "August 2026",
+    changelogV15Item1: "<strong>Zero-Idle GPU &amp; Demand-Driven WebGL:</strong> WebGL render loop drops to 0% GPU load during idle states (0 FPS when stationary), eliminating GPU overheating, VRAM bandwidth spikes, and display driver screen flickering.",
+    changelogV15Item2: "<strong>Two-Phase Before/After Comparison Architecture:</strong> File loading displays exact verified current geometry metrics; post-repair automatically transforms into a complete Before ➔ After delta audit with confirmed 100% Watertight / Manifold status.",
+    changelogV15Item3: "<strong>Non-Intrusive Floating Sticky Auto-Repair Action:</strong> A sleek bottom-center floating action pill appears when scrolling past the dashboard, offering instant 1-click repair without obstructing sidebar tools.",
+    changelogV15Item4: "<strong>Smooth Ease-In-Out Back-To-Top Navigation:</strong> High-precision Back-to-Top physics utilizing an <code>easeInOutCubic</code> deceleration curve (gentle start, fluid glide, soft deceleration).",
+    changelogV15Item5: "<strong>Semantic HTML5 Restructuring &amp; On-Page SEO / JSON-LD:</strong> Full HTML5 semantic landmarks (<code>&lt;header&gt;</code>, <code>&lt;main&gt;</code>, <code>&lt;section&gt;</code>, <code>&lt;article&gt;</code>, <code>&lt;aside&gt;</code>, <code>&lt;footer&gt;</code>), strict H1–H3 hierarchy, schema.org <code>WebApplication</code> &amp; <code>FAQPage</code> schemas, and 100% EN/DE translation parity.",
 
     // Cookie Banner
     cookieTitle: "Privacy & Cookie Preferences",
@@ -575,9 +720,13 @@ export const translations = {
     toastDroppedBed: "Model dropped to build bed (ground contact)!",
     toastCenteredBed: "Model centered in the middle!",
     toastRotated: "Model rotated by 90° ({axis})!",
+    toastScaledInchToMm: "Model successfully scaled by factor 25.4 (Inch ➔ mm)!",
+    toastScaledMmToInch: "Model successfully scaled by factor 1/25.4 (mm ➔ Inch)!",
+    toastScaleReset: "Model scale reset to original dimensions (1:1).",
     toastDecimating: "Reducing polygons to {ratio}%...",
     toastDecimateSuccess: "Polygon decimation complete!",
     toastDecimateFail: "Decimation error: {error}",
+    toastDecimateReset: "Polygon decimation reset to default.",
     toastNoModelExport: "No 3D model loaded to export.",
     toastDownloadedBinary: "Binary STL downloaded!",
     toastDownloadedAscii: "ASCII STL downloaded!",
@@ -607,6 +756,7 @@ export const translations = {
     smoothProtectEdges: "Protect Sharp CAD Edges (> 30°)",
     btnSmoothMesh: "Smooth Surface",
     btnResetSmooth: "Reset",
+    btnResetSmoothTooltip: "Reset smoothing to default",
     btnSmoothingRunning: "Smoothing Surface...",
     toastSmoothSuccess: "Surface successfully smoothed!",
     toastSmoothReset: "Smoothing reset to original model.",
@@ -718,6 +868,21 @@ export class I18n {
       ogLocale.setAttribute('content', lang === 'de' ? 'de_DE' : 'en_US');
     }
 
+    // Update Self-Referencing Canonical Tag & Social URLs
+    const canonicalHref = lang === 'de' ? 'https://www.meshdoc.de/?lang=de' : 'https://www.meshdoc.de/';
+    const canonicalLink = document.querySelector('link[rel="canonical"]');
+    if (canonicalLink) {
+      canonicalLink.setAttribute('href', canonicalHref);
+    }
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) {
+      ogUrl.setAttribute('content', canonicalHref);
+    }
+    const twitterUrl = document.querySelector('meta[property="twitter:url"]');
+    if (twitterUrl) {
+      twitterUrl.setAttribute('content', canonicalHref);
+    }
+
     // Update Language Toggle buttons
     document.querySelectorAll('.lang-btn').forEach((btn) => {
       if (btn.dataset.lang === lang) {
@@ -771,8 +936,13 @@ function initI18n() {
   I18n.init();
 }
 
+if (typeof window !== 'undefined') {
+  window.I18n = I18n;
+}
+
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initI18n);
 } else {
   initI18n();
 }
+

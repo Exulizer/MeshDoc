@@ -33,7 +33,7 @@ class OrbitControls extends EventDispatcher {
 
 		this.object = object;
 		this.domElement = domElement;
-		this.domElement.style.touchAction = 'none'; // disable touch scroll
+		this.domElement.style.touchAction = 'pan-y'; // allow native touch scroll
 
 		// Set to false to disable this control
 		this.enabled = true;
@@ -995,9 +995,11 @@ class OrbitControls extends EventDispatcher {
 
 			if ( scope.enabled === false ) return;
 
-			if ( pointers.length === 0 ) {
+			const isSingleTouch = ( event.pointerType === 'touch' && scope.touches.ONE === null );
 
-				scope.domElement.setPointerCapture( event.pointerId );
+			if ( pointers.length === 0 && !isSingleTouch ) {
+
+				try { scope.domElement.setPointerCapture( event.pointerId ); } catch (e) {}
 
 				scope.domElement.addEventListener( 'pointermove', onPointerMove );
 				scope.domElement.addEventListener( 'pointerup', onPointerUp );
@@ -1009,6 +1011,12 @@ class OrbitControls extends EventDispatcher {
 			addPointer( event );
 
 			if ( event.pointerType === 'touch' ) {
+
+				if ( scope.touches.ONE === null && pointers.length === 2 ) {
+					try { scope.domElement.setPointerCapture( event.pointerId ); } catch (e) {}
+					scope.domElement.addEventListener( 'pointermove', onPointerMove );
+					scope.domElement.addEventListener( 'pointerup', onPointerUp );
+				}
 
 				onTouchStart( event );
 
@@ -1040,9 +1048,13 @@ class OrbitControls extends EventDispatcher {
 
 			removePointer( event );
 
+			if ( pointers.length < 2 && event.pointerType === 'touch' && scope.touches.ONE === null ) {
+				try { scope.domElement.releasePointerCapture( event.pointerId ); } catch (e) {}
+			}
+
 			if ( pointers.length === 0 ) {
 
-				scope.domElement.releasePointerCapture( event.pointerId );
+				try { scope.domElement.releasePointerCapture( event.pointerId ); } catch (e) {}
 
 				scope.domElement.removeEventListener( 'pointermove', onPointerMove );
 				scope.domElement.removeEventListener( 'pointerup', onPointerUp );

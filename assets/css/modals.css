@@ -551,3 +551,39 @@ textarea.form-control {
   color: #0f172a !important;
 }
 
+/* ==========================================================================
+   Mobile Responsive Modal & Notice Banner Overrides
+   ========================================================================== */
+@media (max-width: 600px) {
+  .site-notice-overlay,
+  .cookie-banner-overlay {
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    padding: 14px 16px;
+    max-width: calc(100vw - 24px);
+  }
+
+  .modal-backdrop {
+    padding: 8px;
+  }
+
+  .modal-dialog {
+    max-height: 92vh;
+  }
+
+  .modal-header {
+    padding: 12px 14px;
+  }
+
+  .modal-body {
+    padding: 14px;
+  }
+
+  .notice-btn,
+  .cookie-btn {
+    min-width: 100%;
+  }
+}
+
+

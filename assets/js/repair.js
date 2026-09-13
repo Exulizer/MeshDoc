@@ -582,6 +582,22 @@ export class MeshRepairer {
   }
 
   /**
+   * Scale geometry uniformly by a given factor and re-align flat to bed
+   * @param {THREE.BufferGeometry} geometry
+   * @param {number} scaleFactor
+   * @returns {THREE.BufferGeometry}
+   */
+  static scaleGeometry(geometry, scaleFactor = 1.0) {
+    if (!geometry) return null;
+    if (Math.abs(scaleFactor - 1.0) < 1e-6) return geometry.clone();
+    const scaled = geometry.clone();
+    scaled.scale(scaleFactor, scaleFactor, scaleFactor);
+    scaled.computeBoundingBox();
+    scaled.computeBoundingSphere();
+    return this.alignToBed(scaled);
+  }
+
+  /**
    * Fast & Robust Mesh Decimation (Polygon Reduction) via Adaptive Non-Uniform Centroid Clustering
    * Preserves watertight topology, sharp edges, aspect ratio, and exact target ratios.
    * @param {THREE.BufferGeometry} geometry

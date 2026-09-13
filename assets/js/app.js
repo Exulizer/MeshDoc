@@ -17,9 +17,14 @@ class App {
     this.currentFileName = 'model.stl';
     this.currentFileRawName = 'model';
     this.originalGeometry = null;
+    this.baseFullDetailGeometry = null;
     this.repairedGeometry = null;
     this.activeAnalysis = null;
     this.currentFileSize = 0;
+    this.hasAutoRepaired = false;
+    this.rawLoadedGeometry = null;
+    this.currentScaleFactor = 1.0;
+    window.THREE = THREE;
 
     this.init();
   }
@@ -160,13 +165,13 @@ class App {
       });
     }
 
-    // View Mode Switcher
-    document.querySelectorAll('.mode-btn').forEach((btn) => {
+    // View Mode Switcher (Desktop & Mobile Quick Action Bar)
+    document.querySelectorAll('.mode-btn, .mode-quick-btn').forEach((btn) => {
       btn.addEventListener('click', (e) => {
-        document.querySelectorAll('.mode-btn').forEach((b) => b.classList.remove('active'));
-        const targetBtn = e.currentTarget;
-        targetBtn.classList.add('active');
-        const mode = targetBtn.dataset.mode;
+        const mode = e.currentTarget.dataset.mode;
+        document.querySelectorAll('.mode-btn, .mode-quick-btn').forEach((b) => {
+          b.classList.toggle('active', b.dataset.mode === mode);
+        });
         this.viewer.switchViewMode(mode);
 
         // Update Diagnostics panel to reflect currently active view mode
@@ -178,7 +183,10 @@ class App {
       });
     });
 
-    // Viewport Utility Toggles
+    // Mobile Bottom Sticky Action Bar Triggers
+    document.getElementById('mobileBtnAutoRepair')?.addEventListener('click', () => this.runAutoRepair());
+
+    // Viewport Controls
     document.getElementById('toggleWireframe')?.addEventListener('click', (e) => {
       e.currentTarget.classList.toggle('active');
       this.viewer.toggleWireframe();
@@ -194,20 +202,101 @@ class App {
       this.viewer.toggleErrors();
     });
 
+    // Overhang / Support 3D Highlight Toggle
+    const toggleOverhangViewportBtn = document.getElementById('toggleOverhangs');
+    const toggleOverhangDrawerBtn = document.getElementById('btnToggleOverhangOverlay');
+    const onToggleOverhangs = () => this.toggleOverhangView();
+    toggleOverhangViewportBtn?.addEventListener('click', onToggleOverhangs);
+    toggleOverhangDrawerBtn?.addEventListener('click', onToggleOverhangs);
+
     document.getElementById('btnResetCamera')?.addEventListener('click', () => {
       this.viewer.setCameraPreset('iso');
     });
 
-    // Action Buttons
+    // Sidebar Tabs (Reparatur & Export vs Geometrie)
+    document.getElementById('tabBtnRepair')?.addEventListener('click', () => this.switchSidebarTab('repair'));
+    document.getElementById('tabBtnGeometry')?.addEventListener('click', () => this.switchSidebarTab('geometry'));
+
+    // Action Buttons (Sidebar & On-Screen 3D Viewport HUD)
     document.getElementById('btnAutoRepair')?.addEventListener('click', () => this.runAutoRepair());
     document.getElementById('btnCancelAutoRepair')?.addEventListener('click', () => this.cancelAutoRepair());
     document.getElementById('btnCancelScan')?.addEventListener('click', () => this.cancelAutoRepair());
     document.getElementById('btnDropToBed')?.addEventListener('click', () => this.runDropToBed());
+    document.getElementById('hudBtnDropToBed')?.addEventListener('click', () => this.runDropToBed());
     document.getElementById('btnCenterBed')?.addEventListener('click', () => this.runCenterOnBed());
+    document.getElementById('hudBtnCenterBed')?.addEventListener('click', () => this.runCenterOnBed());
     document.getElementById('btnRotateX')?.addEventListener('click', () => this.runRotate('x'));
+    document.getElementById('hudBtnRotateX')?.addEventListener('click', () => this.runRotate('x'));
     document.getElementById('btnRotateY')?.addEventListener('click', () => this.runRotate('y'));
+    document.getElementById('hudBtnRotateY')?.addEventListener('click', () => this.runRotate('y'));
     document.getElementById('btnRotateZ')?.addEventListener('click', () => this.runRotate('z'));
+    document.getElementById('hudBtnRotateZ')?.addEventListener('click', () => this.runRotate('z'));
+
+    // Scale & Unit Conversion Drawer
+    const toggleScaleDrawer = document.getElementById('toggleScaleDrawer');
+    const scaleDrawerContent = document.getElementById('scaleDrawerContent');
+    if (toggleScaleDrawer && scaleDrawerContent) {
+      toggleScaleDrawer.addEventListener('click', () => {
+        const isOpen = scaleDrawerContent.style.display === 'flex';
+        scaleDrawerContent.style.display = isOpen ? 'none' : 'flex';
+        toggleScaleDrawer.classList.toggle('expanded', !isOpen);
+        toggleScaleDrawer.setAttribute('aria-expanded', !isOpen ? 'true' : 'false');
+      });
+    }
+
+    document.getElementById('btnScaleInchToMm')?.addEventListener('click', () => this.applyScale(25.4, 'inchToMm'));
+    document.getElementById('btnScaleMmToInch')?.addEventListener('click', () => this.applyScale(1 / 25.4, 'mmToInch'));
+    document.getElementById('btnResetScale')?.addEventListener('click', () => this.resetScale());
+
+    // Overhang & Support Drawer
+    const toggleOverhangDrawer = document.getElementById('toggleOverhangDrawer');
+    const overhangDrawerContent = document.getElementById('overhangDrawerContent');
+    if (toggleOverhangDrawer && overhangDrawerContent) {
+      toggleOverhangDrawer.addEventListener('click', () => {
+        const isOpen = overhangDrawerContent.style.display === 'flex';
+        overhangDrawerContent.style.display = isOpen ? 'none' : 'flex';
+        toggleOverhangDrawer.classList.toggle('expanded', !isOpen);
+        toggleOverhangDrawer.setAttribute('aria-expanded', !isOpen ? 'true' : 'false');
+      });
+    }
+
+    // Overhang Angle Slider & Number Input (2-Way Synchronized)
+    const overhangSlider = document.getElementById('overhangAngleSlider');
+    const overhangInput = document.getElementById('overhangAngleInput');
+    const overhangVal = document.getElementById('overhangAngleValue');
+    const syncOverhang = (rawVal) => {
+      const angle = Math.min(85, Math.max(15, parseInt(rawVal, 10) || 45));
+      if (overhangSlider) overhangSlider.value = angle;
+      if (overhangInput) overhangInput.value = angle;
+      if (overhangVal) overhangVal.textContent = `${angle}°`;
+      this.recalculateOverhangs(angle);
+    };
+    overhangSlider?.addEventListener('input', (e) => syncOverhang(e.target.value));
+    overhangInput?.addEventListener('input', (e) => syncOverhang(e.target.value));
+
+    // Mobile Collapsible Section Cards (< 768px Accordions)
+    document.querySelectorAll('.mobile-collapsible-header').forEach((header) => {
+      const card = header.closest('.mobile-collapsible-card');
+      const toggleCollapsible = () => {
+        if (!card) return;
+        // On desktop, sections are permanently expanded via CSS
+        if (window.innerWidth > 768) return;
+        const isExpanded = card.classList.contains('is-expanded');
+        card.classList.toggle('is-expanded', !isExpanded);
+        header.setAttribute('aria-expanded', !isExpanded ? 'true' : 'false');
+      };
+
+      header.addEventListener('click', toggleCollapsible);
+      header.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          toggleCollapsible();
+        }
+      });
+    });
+
     document.getElementById('btnDecimate')?.addEventListener('click', () => this.runDecimation());
+    document.getElementById('btnResetDecimate')?.addEventListener('click', () => this.resetDecimation());
     document.getElementById('btnSmoothMesh')?.addEventListener('click', () => this.runSmoothing());
     document.getElementById('btnResetSmooth')?.addEventListener('click', () => this.resetSmoothing());
     document.getElementById('btnQuickAutoRepairFromSmooth')?.addEventListener('click', () => {
@@ -216,19 +305,23 @@ class App {
       this.runAutoRepair();
     });
 
-    // Decimation Slider
+    // Decimation Slider & Number Input (2-Way Synchronized)
     const decimateSlider = document.getElementById('decimateRatio');
+    const decimateInput = document.getElementById('decimateInput');
     const decimateVal = document.getElementById('decimateValue');
-    const updateDecimateLabel = () => {
-      if (!decimateSlider || !decimateVal) return;
-      const ratio = parseFloat(decimateSlider.value);
+    const updateDecimate = (rawVal) => {
+      const num = Math.min(90, Math.max(10, parseInt(rawVal, 10) || 50));
+      if (decimateSlider) decimateSlider.value = num;
+      if (decimateInput) decimateInput.value = num;
+      const ratio = num / 100;
       const base = this.baseFullDetailGeometry || this.originalGeometry;
       const triCount = base ? Math.round(base.getAttribute('position').count / 3) : 0;
       const estTriangles = Math.max(24, Math.round(triCount * ratio));
-      decimateVal.textContent = `${Math.round(ratio * 100)}% (${estTriangles.toLocaleString()} ▲)`;
+      if (decimateVal) decimateVal.textContent = `${num}% (${estTriangles.toLocaleString()} ▲)`;
     };
-    decimateSlider?.addEventListener('input', updateDecimateLabel);
-    this.updateDecimateSliderLabel = updateDecimateLabel;
+    decimateSlider?.addEventListener('input', (e) => updateDecimate(e.target.value));
+    decimateInput?.addEventListener('input', (e) => updateDecimate(e.target.value));
+    this.updateDecimateSliderLabel = () => updateDecimate(decimateSlider ? decimateSlider.value : 50);
 
     // Smoothing Intensity Slider
     const smoothSlider = document.getElementById('smoothIntensity');
@@ -244,12 +337,20 @@ class App {
       if (smoothVal && fn) smoothVal.textContent = fn();
     });
 
-    // Material & Infill calculation triggers
-    document.getElementById('materialSelect')?.addEventListener('change', () => this.updateMaterialMetrics());
-    document.getElementById('infillSlider')?.addEventListener('input', (e) => {
-      document.getElementById('infillValue').textContent = `${e.target.value}%`;
+    // Material & Infill calculation triggers (2-Way Synchronized)
+    const infillSlider = document.getElementById('infillSlider');
+    const infillInput = document.getElementById('infillInput');
+    const infillVal = document.getElementById('infillValue');
+    const syncInfill = (rawVal) => {
+      const num = Math.min(100, Math.max(0, parseInt(rawVal, 10) || 0));
+      if (infillSlider) infillSlider.value = num;
+      if (infillInput) infillInput.value = num;
+      if (infillVal) infillVal.textContent = `${num}%`;
       this.updateMaterialMetrics();
-    });
+    };
+    document.getElementById('materialSelect')?.addEventListener('change', () => this.updateMaterialMetrics());
+    infillSlider?.addEventListener('input', (e) => syncInfill(e.target.value));
+    infillInput?.addEventListener('input', (e) => syncInfill(e.target.value));
 
     // Export Buttons
     document.getElementById('btnExportBinarySTL')?.addEventListener('click', () => this.exportModel('stl-binary'));
@@ -262,6 +363,89 @@ class App {
 
     // Floating Sticky Auto-Repair Bar
     this.setupStickyRepairBar();
+
+    // Mobile Bottom Sheet Quick Tools
+    this.setupMobileBottomSheet();
+
+    // Mobile Dashboard Segmented Tabs (< 768px)
+    this.setupMobileDashboardTabs();
+  }
+
+  /**
+   * Setup Mobile Quick Controls Bottom Sheet with gesture handling & backdrop
+   */
+  setupMobileBottomSheet() {
+    const sheet = document.getElementById('mobileBottomSheet');
+    const backdrop = document.getElementById('mobileSheetBackdrop');
+    const openBtn = document.getElementById('mobileBtnOpenTools');
+    const closeBtn = document.getElementById('mobileSheetCloseBtn');
+    const handleZone = document.getElementById('mobileSheetHandleZone');
+
+    if (!sheet) return;
+
+    const openSheet = () => {
+      sheet.classList.add('active');
+      if (backdrop) backdrop.classList.add('active');
+      sheet.setAttribute('aria-hidden', 'false');
+      if (openBtn) openBtn.setAttribute('aria-expanded', 'true');
+      document.body.style.overflow = 'hidden';
+    };
+
+    const closeSheet = () => {
+      sheet.classList.remove('active');
+      sheet.style.transform = '';
+      if (backdrop) backdrop.classList.remove('active');
+      sheet.setAttribute('aria-hidden', 'true');
+      if (openBtn) openBtn.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+    };
+
+    openBtn?.addEventListener('click', openSheet);
+    closeBtn?.addEventListener('click', closeSheet);
+    backdrop?.addEventListener('click', closeSheet);
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && sheet.classList.contains('active')) {
+        closeSheet();
+      }
+    });
+
+    // Touch gesture drag handle to pull down and dismiss
+    if (handleZone) {
+      let startY = 0;
+      let currentY = 0;
+      let isDragging = false;
+
+      handleZone.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+          startY = e.touches[0].clientY;
+          currentY = startY;
+          isDragging = true;
+        }
+      }, { passive: true });
+
+      handleZone.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        currentY = e.touches[0].clientY;
+        const deltaY = currentY - startY;
+        if (deltaY > 0) {
+          sheet.style.transform = `translateY(${deltaY}px)`;
+        }
+      }, { passive: true });
+
+      const finishDrag = () => {
+        if (!isDragging) return;
+        isDragging = false;
+        const deltaY = currentY - startY;
+        sheet.style.transform = '';
+        if (deltaY > 50) {
+          closeSheet();
+        }
+      };
+
+      handleZone.addEventListener('touchend', finishDrag, { passive: true });
+      handleZone.addEventListener('touchcancel', finishDrag, { passive: true });
+    }
   }
 
   /**
@@ -271,36 +455,93 @@ class App {
     const mainBtn = document.getElementById('btnAutoRepair');
     const stickyBtn = document.getElementById('btnStickyAutoRepair');
     const footer = document.querySelector('footer.app-footer');
-
-    if (!mainBtn || !stickyBtn) return;
+    const mobileBar = document.getElementById('mobileStickyActionBar');
 
     // Clicking sticky repair button triggers main repair flow
-    stickyBtn.addEventListener('click', () => {
-      mainBtn.click();
-    });
+    if (stickyBtn && mainBtn) {
+      stickyBtn.addEventListener('click', () => {
+        mainBtn.click();
+      });
+    }
 
     // Scroll & Intersection listener
     const updateStickyVisibility = () => {
-      const mainRect = mainBtn.getBoundingClientRect();
-      const isPastMain = mainRect.bottom < 40;
+      // Desktop floating button
+      if (mainBtn && stickyBtn) {
+        const mainRect = mainBtn.getBoundingClientRect();
+        const isPastMain = mainRect.bottom < 40;
 
-      // Check if footer is visible or near the bottom of viewport
-      let isNearFooter = false;
-      if (footer) {
-        const footerRect = footer.getBoundingClientRect();
-        isNearFooter = footerRect.top < (window.innerHeight - 30);
+        let isNearFooter = false;
+        if (footer) {
+          const footerRect = footer.getBoundingClientRect();
+          isNearFooter = footerRect.top < (window.innerHeight - 30);
+        }
+
+        if (isPastMain && !isNearFooter) {
+          stickyBtn.classList.add('visible');
+        } else {
+          stickyBtn.classList.remove('visible');
+        }
       }
 
-      // Only show if scrolled past the main button and NOT in the footer area
-      if (isPastMain && !isNearFooter) {
-        stickyBtn.classList.add('visible');
-      } else {
-        stickyBtn.classList.remove('visible');
+      // Mobile sticky bar: hide when footer enters viewport (Bild 1 fix)
+      if (mobileBar && footer) {
+        const footerRect = footer.getBoundingClientRect();
+        if (footerRect.top < window.innerHeight) {
+          mobileBar.classList.add('hidden-at-footer');
+        } else {
+          mobileBar.classList.remove('hidden-at-footer');
+        }
       }
     };
 
     window.addEventListener('scroll', updateStickyVisibility, { passive: true });
     window.addEventListener('resize', updateStickyVisibility, { passive: true });
+
+    // IntersectionObserver on footer for instantaneous response
+    if (footer && mobileBar && 'IntersectionObserver' in window) {
+      const footerObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting || entry.boundingClientRect.top < window.innerHeight) {
+            mobileBar.classList.add('hidden-at-footer');
+          } else {
+            mobileBar.classList.remove('hidden-at-footer');
+          }
+        });
+      }, { threshold: [0, 0.05, 0.1] });
+      footerObserver.observe(footer);
+    }
+  }
+
+  /**
+   * Setup Mobile Dashboard Segmented Tabs (< 768px)
+   * Switches between Model Diagnostics (left-sidebar) and Tools & Repair (right-sidebar)
+   */
+  setupMobileDashboardTabs() {
+    const diagBtn = document.getElementById('mobileTabBtnDiag');
+    const toolsBtn = document.getElementById('mobileTabBtnTools');
+    const grid = document.querySelector('.dashboard-grid');
+
+    if (!diagBtn || !toolsBtn || !grid) return;
+
+    const showTab = (tab) => {
+      if (tab === 'tools') {
+        grid.classList.add('show-tools');
+        toolsBtn.classList.add('active');
+        toolsBtn.setAttribute('aria-selected', 'true');
+        diagBtn.classList.remove('active');
+        diagBtn.setAttribute('aria-selected', 'false');
+      } else {
+        grid.classList.remove('show-tools');
+        diagBtn.classList.add('active');
+        diagBtn.setAttribute('aria-selected', 'true');
+        toolsBtn.classList.remove('active');
+        toolsBtn.setAttribute('aria-selected', 'false');
+      }
+    };
+
+    diagBtn.addEventListener('click', () => showTab('diag'));
+    toolsBtn.addEventListener('click', () => showTab('tools'));
   }
 
   /**
@@ -413,6 +654,8 @@ class App {
       this.currentFileName = fileName;
       this.currentFileRawName = fileName.replace(/\.[^/.]+$/, '');
       this.currentFileSize = file.size;
+      const sampleSelect = document.getElementById('sampleModelSelect');
+      if (sampleSelect) sampleSelect.value = '';
       this.setOriginalModel(geometry, file.size);
       this.showToast(I18n.t('toastLoadSuccess', { fileName }), 'success');
     } catch (err) {
@@ -554,47 +797,209 @@ class App {
    * Set original geometry, analyze and render
    */
   setOriginalModel(geometry, fileSizeBytes = 0) {
+    // Abort any ongoing repair operation
+    if (this.repairAbortController) {
+      try {
+        this.repairAbortController.abort('USER_NEW_MODEL');
+      } catch (e) {}
+      this.repairAbortController = null;
+    }
+
     // Automatically center and drop on bed
     this.originalGeometry = MeshRepairer.alignToBed(geometry);
     this.baseFullDetailGeometry = this.originalGeometry.clone();
+    this.rawLoadedGeometry = this.originalGeometry.clone();
+    this.currentScaleFactor = 1.0;
     this.repairedGeometry = null;
+    this.hasAutoRepaired = false;
+    this.currentMode = 'original';
     this.currentFileSize = fileSizeBytes;
 
-    // Reset view buttons state
+    // Reset view mode buttons: 'original' active, 'repaired' and 'split' disabled
+    document.querySelectorAll('.mode-btn, .mode-quick-btn').forEach((b) => {
+      b.classList.remove('active');
+      if (b.dataset.mode === 'original') {
+        b.disabled = false;
+        b.classList.add('active');
+      } else {
+        b.disabled = true;
+      }
+    });
+
+    // Reset scanner overlay, progress bar & abort/cancel buttons
     const timeoutBox = document.getElementById('timeoutNoticeBox');
     if (timeoutBox) timeoutBox.style.display = 'none';
+    const repairOverlay = document.getElementById('repairScanOverlay');
+    if (repairOverlay) repairOverlay.classList.remove('active');
+    const btnCancel = document.getElementById('btnCancelAutoRepair');
+    if (btnCancel) btnCancel.style.display = 'none';
+    const scanProgressBar = document.getElementById('scanProgressBar');
+    if (scanProgressBar) scanProgressBar.style.width = '0%';
+    const scanPercentText = document.getElementById('scanPercentText');
+    if (scanPercentText) scanPercentText.textContent = '0%';
 
-    document.querySelectorAll('.mode-btn').forEach((b) => b.classList.remove('active'));
-    document.querySelector('.mode-btn[data-mode="original"]')?.classList.add('active');
+    // Reset main, sticky, and mobile auto-repair buttons
+    const btnAuto = document.getElementById('btnAutoRepair');
+    const btnAutoSpan = document.getElementById('btnAutoRepairText');
+    if (btnAuto) {
+      btnAuto.classList.remove('running', 'done');
+      btnAuto.disabled = false;
+      if (btnAutoSpan) btnAutoSpan.textContent = typeof I18n !== 'undefined' ? I18n.t('btnAutoRepair') : 'Auto-Reparatur starten';
+    }
+    const stickyAuto = document.getElementById('btnStickyAutoRepair');
+    if (stickyAuto) {
+      stickyAuto.classList.remove('running', 'done');
+      stickyAuto.disabled = false;
+      const stickySpan = stickyAuto.querySelector('span');
+      if (stickySpan) stickySpan.textContent = typeof I18n !== 'undefined' ? I18n.t('btnAutoRepair') : 'Auto-Reparatur starten';
+    }
+    const mobileAuto = document.getElementById('mobileBtnAutoRepair');
+    if (mobileAuto) {
+      mobileAuto.classList.remove('running', 'done');
+      mobileAuto.disabled = false;
+      const mobileSpan = document.getElementById('mobileBtnRepairText');
+      if (mobileSpan) mobileSpan.textContent = typeof I18n !== 'undefined' ? I18n.t('btnAutoRepair') : 'Auto-Reparatur';
+    }
+
+    // Reset before/after delta badges
+    const vDelta = document.getElementById('v-delta-badge');
+    if (vDelta) vDelta.style.display = 'none';
+    const tDelta = document.getElementById('t-delta-badge');
+    if (tDelta) tDelta.style.display = 'none';
+
+    // Clear file input value so re-selecting the same file fires 'change' event
+    const fileInput = document.getElementById('fileInput');
+    if (fileInput) fileInput.value = '';
 
     // Update File info badge
-    document.getElementById('fileBadge').style.display = 'flex';
-    document.getElementById('fileNameText').textContent = this.currentFileName;
-    document.getElementById('fileSizeText').textContent = this.formatBytes(fileSizeBytes);
+    const fileBadge = document.getElementById('fileBadge');
+    if (fileBadge) fileBadge.style.display = 'flex';
+    const fileNameText = document.getElementById('fileNameText');
+    if (fileNameText) fileNameText.textContent = this.currentFileName;
+    const fileSizeText = document.getElementById('fileSizeText');
+    if (fileSizeText) fileSizeText.textContent = this.formatBytes(fileSizeBytes);
 
-    // Enable repair & export buttons
-    document.getElementById('btnAutoRepair').disabled = false;
-    if (document.getElementById('btnDropToBed')) document.getElementById('btnDropToBed').disabled = false;
-    if (document.getElementById('btnCenterBed')) document.getElementById('btnCenterBed').disabled = false;
-    if (document.getElementById('btnRotateX')) document.getElementById('btnRotateX').disabled = false;
-    if (document.getElementById('btnRotateY')) document.getElementById('btnRotateY').disabled = false;
-    if (document.getElementById('btnRotateZ')) document.getElementById('btnRotateZ').disabled = false;
-    document.getElementById('btnDecimate').disabled = false;
-    if (document.getElementById('btnSmoothMesh')) document.getElementById('btnSmoothMesh').disabled = false;
+    // Reset Decimate slider & label & disable reset decimate button
+    const decimateSlider = document.getElementById('decimateRatio');
+    if (decimateSlider) decimateSlider.value = '50';
+    if (typeof this.updateDecimateSliderLabel === 'function') {
+      this.updateDecimateSliderLabel();
+    }
+    const btnResetDecimate = document.getElementById('btnResetDecimate');
+    if (btnResetDecimate) btnResetDecimate.disabled = true;
+
+    // Reset Smooth slider & label & disable reset smooth button
+    const smoothSlider = document.getElementById('smoothIntensity');
+    if (smoothSlider) {
+      smoothSlider.value = '2';
+      const smoothVal = document.getElementById('smoothIntensityValue');
+      if (smoothVal) smoothVal.textContent = typeof I18n !== 'undefined' ? I18n.t('levelMedium') : 'Mittel';
+    }
+    const btnResetSmooth = document.getElementById('btnResetSmooth');
+    if (btnResetSmooth) btnResetSmooth.disabled = true;
     const smoothAlert = document.getElementById('smoothFeasibilityAlert');
     if (smoothAlert) smoothAlert.style.display = 'none';
-    document.getElementById('exportButtonGroup').querySelectorAll('button').forEach((b) => (b.disabled = false));
 
-    // Analyze mesh topology
-    this.runAnalysis(this.originalGeometry, true);
+    // Reset Scale inputs, UI badge & disable reset scale button
+    const customScaleInput = document.getElementById('customScaleInput');
+    if (customScaleInput) customScaleInput.value = '';
+    this.updateScaleUI();
+    const btnResetScale = document.getElementById('btnResetScale');
+    if (btnResetScale) btnResetScale.disabled = true;
+
+    // Reset Overhang Angle slider & label
+    const overhangSlider = document.getElementById('overhangAngleSlider');
+    const overhangVal = document.getElementById('overhangAngleValue');
+    if (overhangSlider) overhangSlider.value = '45';
+    if (overhangVal) overhangVal.textContent = '45°';
+
+    // Reset Material & Infill options
+    const materialSelect = document.getElementById('materialSelect');
+    if (materialSelect) materialSelect.value = 'PLA';
+    const infillSlider = document.getElementById('infillSlider');
+    if (infillSlider) {
+      infillSlider.value = '20';
+      const infillVal = document.getElementById('infillValue');
+      if (infillVal) infillVal.textContent = '20%';
+    }
+
+    // Close all collapsible drawers in the sidebar
+    const toggleOverhangDrawer = document.getElementById('toggleOverhangDrawer');
+    const overhangDrawerContent = document.getElementById('overhangDrawerContent');
+    if (overhangDrawerContent) {
+      overhangDrawerContent.style.display = 'none';
+      toggleOverhangDrawer?.classList.remove('expanded');
+      toggleOverhangDrawer?.setAttribute('aria-expanded', 'false');
+    }
+
+    const toggleScaleDrawer = document.getElementById('toggleScaleDrawer');
+    const scaleDrawerContent = document.getElementById('scaleDrawerContent');
+    if (scaleDrawerContent) {
+      scaleDrawerContent.style.display = 'none';
+      toggleScaleDrawer?.classList.remove('expanded');
+      toggleScaleDrawer?.setAttribute('aria-expanded', 'false');
+    }
+
+    // Reset all Issue expandable cards
+    document.querySelectorAll('.issue-item.expanded').forEach((el) => {
+      el.classList.remove('expanded');
+    });
+
+    // Reset viewport tool toggle buttons
+    const toggleOverhangViewportBtn = document.getElementById('toggleOverhangs');
+    const toggleOverhangDrawerBtn = document.getElementById('btnToggleOverhangOverlay');
+    const toggleWireframeBtn = document.getElementById('toggleWireframe');
+    const toggleErrorsBtn = document.getElementById('toggleErrors');
+    const toggleBedBtn = document.getElementById('toggleBed');
+
+    if (toggleOverhangViewportBtn) toggleOverhangViewportBtn.classList.remove('active');
+    if (toggleOverhangDrawerBtn) toggleOverhangDrawerBtn.classList.remove('active');
+    const overhangHud = document.getElementById('viewerOverhangHud');
+    if (overhangHud) overhangHud.style.display = 'none';
+    if (toggleWireframeBtn) toggleWireframeBtn.classList.remove('active');
+    if (toggleErrorsBtn) toggleErrorsBtn.classList.add('active');
+    if (toggleBedBtn) toggleBedBtn.classList.add('active');
+
+    // Switch back to Repair tab by default
+    this.switchSidebarTab('repair');
+
+    // Reset pipeline steps
+    document.getElementById('pipeUpload')?.classList.remove('active');
+    document.getElementById('pipeUpload')?.classList.add('done');
+    document.getElementById('pipeAnalyze')?.classList.remove('active');
+    document.getElementById('pipeAnalyze')?.classList.add('done');
+    document.getElementById('pipeRepair')?.classList.remove('active', 'done');
+    document.getElementById('pipeExport')?.classList.remove('active', 'done');
+
+    // Enable repair, bed transformation, decimation & smooth buttons
+    if (document.getElementById('btnDropToBed')) document.getElementById('btnDropToBed').disabled = false;
+    if (document.getElementById('hudBtnDropToBed')) document.getElementById('hudBtnDropToBed').disabled = false;
+    if (document.getElementById('btnCenterBed')) document.getElementById('btnCenterBed').disabled = false;
+    if (document.getElementById('hudBtnCenterBed')) document.getElementById('hudBtnCenterBed').disabled = false;
+    if (document.getElementById('btnRotateX')) document.getElementById('btnRotateX').disabled = false;
+    if (document.getElementById('hudBtnRotateX')) document.getElementById('hudBtnRotateX').disabled = false;
+    if (document.getElementById('btnRotateY')) document.getElementById('btnRotateY').disabled = false;
+    if (document.getElementById('hudBtnRotateY')) document.getElementById('hudBtnRotateY').disabled = false;
+    if (document.getElementById('btnRotateZ')) document.getElementById('btnRotateZ').disabled = false;
+    if (document.getElementById('hudBtnRotateZ')) document.getElementById('hudBtnRotateZ').disabled = false;
+    if (document.getElementById('btnScaleInchToMm')) document.getElementById('btnScaleInchToMm').disabled = false;
+    if (document.getElementById('btnScaleMmToInch')) document.getElementById('btnScaleMmToInch').disabled = false;
+    if (document.getElementById('btnDecimate')) document.getElementById('btnDecimate').disabled = false;
+    if (document.getElementById('btnSmoothMesh')) document.getElementById('btnSmoothMesh').disabled = false;
+    document.getElementById('exportButtonGroup')?.querySelectorAll('button').forEach((b) => (b.disabled = false));
+
+    // Reset Viewport tools, overlays, and camera
+    if (this.viewer?.resetViewportState) {
+      this.viewer.resetViewportState();
+    }
 
     // Render in viewport
     this.viewer.setOriginalGeometry(this.originalGeometry);
+
+    // Analyze mesh topology and update highlights
+    this.runAnalysis(this.originalGeometry, true);
   }
 
-  /**
-   * Perform mesh topology diagnostic analysis
-   */
   runAnalysis(geometry, isOriginal = true) {
     const analysis = MeshAnalyzer.analyze(geometry);
     this.activeAnalysis = analysis;
@@ -789,10 +1194,21 @@ class App {
     this.updateIssueRow('issueNonManifold', analysis.nonManifoldEdgesCount, I18n.t('issueNonManifold'), 'issueNonManifold', isOriginal);
     this.updateIssueRow('issueInverted', analysis.invertedEdgesCount, I18n.t('issueInverted'), 'issueInverted', isOriginal);
     this.updateIssueRow('issueDegenerates', analysis.degenerateTriangles, I18n.t('issueDegenerates'), 'issueDegenerates', isOriginal);
+    this.updateUnitScaleRow(analysis.unitScale, isOriginal);
+    this.updateOverhangRow(analysis.overhangs, isOriginal);
+    this.updateOverhangMetricsUI(analysis.overhangs);
 
     // Update error visualizer in 3D viewport
     if (isOriginal) {
       this.viewer.setErrorHighlights(analysis.errorLines);
+    }
+    if (this.viewer && analysis.overhangs && analysis.overhangs.overhangTrianglesBuffer) {
+      this.viewer.setOverhangHighlights(
+        analysis.overhangs.overhangTrianglesBuffer,
+        analysis.overhangs.overhangColorsBuffer
+      );
+    } else if (this.viewer) {
+      this.viewer.clearOverhangHighlights();
     }
 
     // Update Material estimates
@@ -856,6 +1272,228 @@ class App {
     }
   }
 
+  updateUnitScaleRow(unitScale, isOriginal = true) {
+    const el = document.getElementById('issueUnitScale');
+    if (!el) return;
+
+    const isExpanded = el.classList.contains('expanded');
+    const isAnomaly = unitScale && unitScale.isAnomaly;
+    el.className = `issue-item ${isAnomaly ? 'warning' : 'success'} ${isExpanded ? 'expanded' : ''}`;
+
+    const label = I18n.t('issueUnitScale');
+    const badgeText = isAnomaly ? I18n.t(unitScale.labelKey) : I18n.t('unitNormal');
+    const problemLabel = I18n.t('problemLabel');
+    const solutionLabel = I18n.t('solutionLabel');
+    const problemText = I18n.t('issueUnitScaleDescProblem');
+    const solutionText = I18n.t('issueUnitScaleDescSolution');
+    const quickFixText = I18n.t('btnQuickScaleInch');
+
+    el.innerHTML = `
+      <div class="issue-header">
+        <span class="issue-name">
+          ${isAnomaly 
+            ? '<svg width="14" height="14" viewBox="0 0 20 20" fill="#f59e0b"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>'
+            : '<svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>'
+          }
+          ${label}
+        </span>
+        <div class="issue-count-wrapper">
+          <span class="issue-count" style="${isAnomaly ? 'color: #f59e0b;' : 'color: var(--status-success);'}">${badgeText}</span>
+          <svg class="issue-chevron" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+      </div>
+      <div class="issue-detail-drawer">
+        <div class="issue-info-block ${isAnomaly ? 'problem' : ''}">
+          <div class="issue-info-title">${problemLabel}</div>
+          <div>${problemText}</div>
+        </div>
+        <div class="issue-info-block solution">
+          <div class="issue-info-title">${solutionLabel}</div>
+          <div>${solutionText}</div>
+        </div>
+        ${isAnomaly ? `
+          <button type="button" class="btn btn-primary btn-mini btn-quick-fix" onclick="event.stopPropagation(); window.meshApp?.applyScale(${unitScale.suggestedFactor}, 'autoUnit');">
+            ${quickFixText}
+          </button>
+        ` : ''}
+      </div>
+    `;
+
+    // Click handler to expand/collapse
+    if (!el.dataset.bound) {
+      el.dataset.bound = 'true';
+      el.addEventListener('click', (e) => {
+        if (e.target.closest('.btn-quick-fix')) return;
+        el.classList.toggle('expanded');
+      });
+    }
+  }
+
+  updateOverhangRow(overhangs, isOriginal = true) {
+    const el = document.getElementById('issueOverhangs');
+    if (!el) return;
+
+    const isExpanded = el.classList.contains('expanded');
+    const hasOverhangs = overhangs && overhangs.overhangAreaPercent > 0;
+    el.className = `issue-item ${hasOverhangs ? 'warning' : 'success'} ${isExpanded ? 'expanded' : ''}`;
+
+    const label = I18n.t('issueOverhangs');
+    const badgeText = hasOverhangs 
+      ? I18n.t('overhangBadge', { percent: overhangs.overhangAreaPercent, volume: overhangs.supportVolumeCm3 })
+      : I18n.t('overhangNone');
+    const problemLabel = I18n.t('problemLabel');
+    const solutionLabel = I18n.t('solutionLabel');
+    const problemText = I18n.t('issueOverhangsDescProblem', { 
+      angle: overhangs?.thresholdDeg || 45, 
+      volume: overhangs?.supportVolumeCm3 || 0 
+    });
+    const solutionText = I18n.t('issueOverhangsDescSolution');
+    const quickFixText = I18n.t('btnShowOverhangsIn3D');
+
+    el.innerHTML = `
+      <div class="issue-header">
+        <span class="issue-name">
+          ${hasOverhangs 
+            ? '<svg width="14" height="14" viewBox="0 0 20 20" fill="#f59e0b"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>'
+            : '<svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>'
+          }
+          ${label}
+        </span>
+        <div class="issue-count-wrapper">
+          <span class="issue-count" style="${hasOverhangs ? 'color: #f59e0b;' : 'color: var(--status-success);'}">${badgeText}</span>
+          <svg class="issue-chevron" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+      </div>
+      <div class="issue-detail-drawer">
+        <div class="issue-info-block ${hasOverhangs ? 'problem' : ''}">
+          <div class="issue-info-title">${problemLabel}</div>
+          <div>${problemText}</div>
+        </div>
+        <div class="issue-info-block solution">
+          <div class="issue-info-title">${solutionLabel}</div>
+          <div>${solutionText}</div>
+        </div>
+        ${hasOverhangs ? `
+          <button type="button" class="btn btn-secondary btn-mini btn-quick-fix" onclick="event.stopPropagation(); window.meshApp?.openOverhangDrawer(); window.meshApp?.toggleOverhangView(true);">
+            ${quickFixText}
+          </button>
+        ` : ''}
+      </div>
+    `;
+
+    // Click handler to expand/collapse
+    if (!el.dataset.bound) {
+      el.dataset.bound = 'true';
+      el.addEventListener('click', (e) => {
+        if (e.target.closest('.btn-quick-fix')) return;
+        el.classList.toggle('expanded');
+      });
+    }
+  }
+
+  updateOverhangMetricsUI(overhangs) {
+    const badge = document.getElementById('currentOverhangBadge');
+    const area = document.getElementById('overhangAreaMetric');
+    const vol = document.getElementById('supportVolumeMetric');
+
+    if (!overhangs) {
+      if (badge) badge.textContent = '0%';
+      if (area) area.textContent = '0 mm² (0%)';
+      if (vol) vol.textContent = '0.0 cm³';
+      return;
+    }
+
+    if (badge) badge.textContent = `${overhangs.overhangAreaPercent}%`;
+    if (area) area.textContent = `${overhangs.overhangAreaMm2.toLocaleString()} mm² (${overhangs.overhangAreaPercent}%)`;
+    if (vol) vol.textContent = `${overhangs.supportVolumeCm3.toLocaleString()} cm³`;
+  }
+
+  recalculateOverhangs(angleDeg = 45) {
+    const geom = (this.currentMode === 'repaired' && this.repairedGeometry)
+      ? this.repairedGeometry
+      : this.originalGeometry;
+    if (!geom) return;
+
+    const totalArea = this.activeAnalysis ? this.activeAnalysis.surfaceAreaMm2 : 0;
+    const overhangs = MeshAnalyzer.analyzeOverhangs(geom, { thresholdAngleDeg: angleDeg, overhangAngleDeg: angleDeg }, totalArea);
+
+    if (this.activeAnalysis) {
+      this.activeAnalysis.overhangs = overhangs;
+    }
+
+    if (this.viewer && overhangs.overhangTrianglesBuffer) {
+      this.viewer.setOverhangHighlights(overhangs.overhangTrianglesBuffer, overhangs.overhangColorsBuffer);
+    }
+
+    // Update HUD and drawer limit labels
+    const hudThreshold = document.getElementById('overhangHudThreshold');
+    if (hudThreshold) hudThreshold.textContent = `Limit: ${angleDeg}°`;
+    const legendThreshold = document.getElementById('overhangLegendThreshold');
+    if (legendThreshold) legendThreshold.textContent = `Limit: ${angleDeg}°`;
+
+    this.updateOverhangMetricsUI(overhangs);
+    this.updateOverhangRow(overhangs, this.currentMode === 'original');
+    this.updateMaterialMetrics();
+  }
+
+  toggleOverhangView(forceState) {
+    const active = this.viewer.toggleOverhangs(forceState);
+    const toggleOverhangViewportBtn = document.getElementById('toggleOverhangs');
+    const toggleOverhangDrawerBtn = document.getElementById('btnToggleOverhangOverlay');
+    const overhangHud = document.getElementById('viewerOverhangHud');
+    if (toggleOverhangViewportBtn) toggleOverhangViewportBtn.classList.toggle('active', active);
+    if (toggleOverhangDrawerBtn) toggleOverhangDrawerBtn.classList.toggle('active', active);
+    if (overhangHud) overhangHud.style.display = active ? 'flex' : 'none';
+  }
+
+  switchSidebarTab(tabName) {
+    const isRepair = tabName === 'repair';
+    const tabBtnRepair = document.getElementById('tabBtnRepair');
+    const tabBtnGeometry = document.getElementById('tabBtnGeometry');
+    const tabPaneRepair = document.getElementById('tabPaneRepair');
+    const tabPaneGeometry = document.getElementById('tabPaneGeometry');
+
+    tabBtnRepair?.classList.toggle('active', isRepair);
+    tabBtnRepair?.setAttribute('aria-selected', isRepair ? 'true' : 'false');
+    tabBtnGeometry?.classList.toggle('active', !isRepair);
+    tabBtnGeometry?.setAttribute('aria-selected', !isRepair ? 'true' : 'false');
+
+    if (tabPaneRepair) {
+      tabPaneRepair.classList.toggle('active', isRepair);
+      tabPaneRepair.style.display = isRepair ? 'block' : 'none';
+    }
+    if (tabPaneGeometry) {
+      tabPaneGeometry.classList.toggle('active', !isRepair);
+      tabPaneGeometry.style.display = !isRepair ? 'block' : 'none';
+    }
+  }
+
+  openOverhangDrawer() {
+    this.switchSidebarTab('geometry');
+    const toggleOverhangDrawer = document.getElementById('toggleOverhangDrawer');
+    const overhangDrawerContent = document.getElementById('overhangDrawerContent');
+    if (overhangDrawerContent && overhangDrawerContent.style.display !== 'flex') {
+      overhangDrawerContent.style.display = 'flex';
+      toggleOverhangDrawer?.classList.add('expanded');
+      toggleOverhangDrawer?.setAttribute('aria-expanded', 'true');
+    }
+  }
+
+  openScaleDrawer() {
+    this.switchSidebarTab('geometry');
+    const toggleScaleDrawer = document.getElementById('toggleScaleDrawer');
+    const scaleDrawerContent = document.getElementById('scaleDrawerContent');
+    if (scaleDrawerContent && scaleDrawerContent.style.display !== 'flex') {
+      scaleDrawerContent.style.display = 'flex';
+      toggleScaleDrawer?.classList.add('expanded');
+      toggleScaleDrawer?.setAttribute('aria-expanded', 'true');
+    }
+  }
+
   updateMaterialMetrics() {
     if (!this.activeAnalysis) return;
     const material = document.getElementById('materialSelect').value;
@@ -864,6 +1502,16 @@ class App {
 
     document.getElementById('metricWeight').textContent = `${result.estimatedWeightGrams} g`;
     document.getElementById('metricFilament').textContent = `${result.filamentLengthMeters} m`;
+
+    if (this.activeAnalysis.overhangs && this.activeAnalysis.overhangs.supportVolumeCm3 > 0) {
+      const densities = { PLA: 1.24, PETG: 1.27, ABS: 1.04, TPU: 1.21, RESIN: 1.15 };
+      const density = densities[material] || 1.24;
+      const supportWeight = Math.round(this.activeAnalysis.overhangs.supportVolumeCm3 * density * 10) / 10;
+      const volEl = document.getElementById('supportVolumeMetric');
+      if (volEl) {
+        volEl.textContent = `${this.activeAnalysis.overhangs.supportVolumeCm3.toLocaleString()} cm³ (~${supportWeight} g)`;
+      }
+    }
   }
 
   /**
@@ -908,10 +1556,17 @@ class App {
     const signal = this.repairAbortController.signal;
 
     // Set UI into active repair state
+    const mobileBtn = document.getElementById('mobileBtnAutoRepair');
+    const mobileSpan = document.getElementById('mobileBtnRepairText');
     if (btn) {
       btn.disabled = true;
       btn.classList.add('running');
       if (btnSpan) btnSpan.textContent = I18n.t('repairBtnRunning');
+    }
+    if (mobileBtn) {
+      mobileBtn.disabled = true;
+      mobileBtn.classList.add('running');
+      if (mobileSpan) mobileSpan.textContent = I18n.t('repairBtnRunning');
     }
     if (btnCancel) {
       btnCancel.style.display = 'inline-flex';
@@ -949,15 +1604,18 @@ class App {
 
       this.repairedGeometry = repaired;
       this.baseFullDetailGeometry = repaired.clone();
+      this.hasAutoRepaired = true;
       this.updateDecimateSliderLabel?.();
-
-      // Analyze repaired mesh
-      this.runAnalysis(this.repairedGeometry, false);
 
       // Update 3D Viewport
       this.viewer.setRepairedGeometry(this.repairedGeometry);
-      document.querySelectorAll('.mode-btn').forEach((b) => b.classList.remove('active'));
-      document.querySelector('.mode-btn[data-mode="repaired"]')?.classList.add('active');
+      document.querySelectorAll('.mode-btn, .mode-quick-btn').forEach((b) => {
+        b.disabled = false;
+        b.classList.toggle('active', b.dataset.mode === 'repaired');
+      });
+
+      // Analyze repaired mesh
+      this.runAnalysis(this.repairedGeometry, false);
 
       if (btn) {
         btn.classList.remove('running');
@@ -967,6 +1625,16 @@ class App {
           btn.classList.remove('done');
           btn.disabled = false;
           if (btnSpan) btnSpan.textContent = I18n.t('btnAutoRepair');
+        }, 2200);
+      }
+      if (mobileBtn) {
+        mobileBtn.classList.remove('running');
+        mobileBtn.classList.add('done');
+        if (mobileSpan) mobileSpan.textContent = I18n.t('repairBtnDone');
+        setTimeout(() => {
+          mobileBtn.classList.remove('done');
+          mobileBtn.disabled = false;
+          if (mobileSpan) mobileSpan.textContent = I18n.t('btnAutoRepair');
         }, 2200);
       }
 
@@ -1004,6 +1672,11 @@ class App {
         btn.classList.remove('running', 'done');
         btn.disabled = false;
         if (btnSpan) btnSpan.textContent = I18n.t('btnAutoRepair');
+      }
+      if (mobileBtn) {
+        mobileBtn.classList.remove('running', 'done');
+        mobileBtn.disabled = false;
+        if (mobileSpan) mobileSpan.textContent = I18n.t('btnAutoRepair');
       }
     } finally {
       this.repairAbortController = null;
@@ -1090,6 +1763,87 @@ class App {
   }
 
   /**
+   * Scale model by factor (e.g. 25.4 for Inch to mm or 1/25.4 for mm to Inch)
+   * @param {number} factor
+   * @param {string} mode
+   */
+  applyScale(factor, mode = 'inchToMm') {
+    const targetGeom = this.repairedGeometry || this.originalGeometry;
+    if (!targetGeom) return;
+
+    this.currentScaleFactor = (this.currentScaleFactor || 1.0) * factor;
+
+    if (this.baseFullDetailGeometry) {
+      this.baseFullDetailGeometry = MeshRepairer.scaleGeometry(this.baseFullDetailGeometry, factor);
+    }
+    if (this.originalGeometry) {
+      this.originalGeometry = MeshRepairer.scaleGeometry(this.originalGeometry, factor);
+    }
+    if (this.repairedGeometry) {
+      this.repairedGeometry = MeshRepairer.scaleGeometry(this.repairedGeometry, factor);
+      this.viewer.setRepairedGeometry(this.repairedGeometry);
+    } else {
+      this.viewer.setOriginalGeometry(this.originalGeometry);
+    }
+
+    const activeMesh = this.repairedGeometry ? this.viewer.repairedMesh : this.viewer.originalMesh;
+    if (activeMesh && this.viewer.fitCameraToMesh) {
+      this.viewer.fitCameraToMesh(activeMesh);
+    }
+
+    const currentGeom = this.repairedGeometry || this.originalGeometry;
+    this.runAnalysis(currentGeom, !this.repairedGeometry);
+    this.updateScaleUI();
+
+    const toastMsg = factor > 1 ? I18n.t('toastScaledInchToMm') : I18n.t('toastScaledMmToInch');
+    this.showToast(toastMsg, 'success');
+  }
+
+  /**
+   * Reset model to 100% original unscaled geometry
+   */
+  resetScale() {
+    if (!this.rawLoadedGeometry) return;
+    this.currentScaleFactor = 1.0;
+
+    this.originalGeometry = MeshRepairer.alignToBed(this.rawLoadedGeometry.clone());
+    this.baseFullDetailGeometry = this.originalGeometry.clone();
+    this.repairedGeometry = null;
+    this.hasAutoRepaired = false;
+
+    document.querySelectorAll('.mode-btn').forEach((b) => b.classList.remove('active'));
+    document.querySelector('.mode-btn[data-mode="original"]')?.classList.add('active');
+
+    this.viewer.setOriginalGeometry(this.originalGeometry);
+    if (this.viewer.originalMesh && this.viewer.fitCameraToMesh) {
+      this.viewer.fitCameraToMesh(this.viewer.originalMesh);
+    }
+
+    this.runAnalysis(this.originalGeometry, true);
+    this.updateScaleUI();
+    this.showToast(I18n.t('toastScaleReset'), 'info');
+  }
+
+  updateScaleUI() {
+    const factor = this.currentScaleFactor || 1.0;
+    const badge = document.getElementById('currentScaleBadge');
+    if (badge) {
+      badge.textContent = `${factor.toFixed(2)}×`;
+      if (Math.abs(factor - 1.0) > 0.001) {
+        badge.style.color = 'var(--accent-cyan)';
+        badge.style.borderColor = 'var(--accent-cyan)';
+      } else {
+        badge.style.color = 'var(--text-muted)';
+        badge.style.borderColor = 'var(--border-subtle)';
+      }
+    }
+    const btnResetScale = document.getElementById('btnResetScale');
+    if (btnResetScale) {
+      btnResetScale.disabled = Math.abs(factor - 1.0) <= 0.001;
+    }
+  }
+
+  /**
    * Run mesh decimation / polygon reduction
    */
   async runDecimation() {
@@ -1097,7 +1851,8 @@ class App {
     if (!sourceGeom) return;
 
     const btn = document.getElementById('btnDecimate');
-    const ratio = parseFloat(document.getElementById('decimateRatio').value);
+    const rawVal = parseFloat(document.getElementById('decimateRatio').value);
+    const ratio = rawVal > 1 ? rawVal / 100 : rawVal;
     
     if (btn) {
       btn.disabled = true;
@@ -1117,8 +1872,13 @@ class App {
       this.viewer.setRepairedGeometry(this.repairedGeometry);
       
       // Update UI mode switch
-      document.querySelectorAll('.mode-btn').forEach((b) => b.classList.remove('active'));
-      document.querySelector('.mode-btn[data-mode="repaired"]')?.classList.add('active');
+      document.querySelectorAll('.mode-btn, .mode-quick-btn').forEach((b) => {
+        b.disabled = false;
+        b.classList.remove('active');
+      });
+      document.querySelectorAll('.mode-btn[data-mode="repaired"], .mode-quick-btn[data-mode="repaired"]').forEach((b) => b.classList.add('active'));
+      const btnResetDecimate = document.getElementById('btnResetDecimate');
+      if (btnResetDecimate) btnResetDecimate.disabled = false;
 
       // Re-run diagnostics to update triangle and vertex metrics immediately
       this.runAnalysis(this.repairedGeometry, false);
@@ -1136,6 +1896,57 @@ class App {
   }
 
   /**
+   * Reset decimation back to the un-decimated base geometry and reset slider to default 50%
+   */
+  resetDecimation() {
+    const slider = document.getElementById('decimateRatio');
+    const input = document.getElementById('decimateInput');
+    if (slider) {
+      slider.value = '50';
+      slider.dispatchEvent(new Event('input'));
+    }
+    if (input) {
+      input.value = '50';
+    }
+    if (typeof this.updateDecimateSliderLabel === 'function') {
+      this.updateDecimateSliderLabel();
+    }
+    const btnResetDecimate = document.getElementById('btnResetDecimate');
+    if (btnResetDecimate) btnResetDecimate.disabled = true;
+
+    const base = this.baseFullDetailGeometry || this.originalGeometry;
+    if (!base) return;
+
+    if (this.hasAutoRepaired) {
+      this.repairedGeometry = base.clone();
+      this.viewer.setRepairedGeometry(this.repairedGeometry, false);
+      document.querySelectorAll('.mode-btn, .mode-quick-btn').forEach((b) => b.classList.remove('active'));
+      document.querySelectorAll('.mode-btn[data-mode="repaired"], .mode-quick-btn[data-mode="repaired"]').forEach((b) => b.classList.add('active'));
+      this.runAnalysis(this.repairedGeometry, false);
+    } else {
+      this.repairedGeometry = null;
+      if (this.viewer.repairedMesh) {
+        this.viewer.scene.remove(this.viewer.repairedMesh);
+        this.viewer.repairedMesh.geometry.dispose();
+        this.viewer.repairedMesh = null;
+      }
+      this.viewer.switchViewMode('original');
+      document.querySelectorAll('.mode-btn, .mode-quick-btn').forEach((b) => {
+        b.classList.remove('active');
+        if (b.dataset.mode !== 'original') {
+          b.disabled = true;
+        } else {
+          b.disabled = false;
+          b.classList.add('active');
+        }
+      });
+      this.runAnalysis(this.originalGeometry, true);
+    }
+
+    this.showToast(I18n.t('toastDecimateReset'), 'info');
+  }
+
+  /**
    * Run volume-preserving surface smoothing (Taubin) with structure feasibility check
    * Always computes non-destructively from base un-smoothed geometry so levels can be changed freely anytime.
    */
@@ -1147,37 +1958,35 @@ class App {
     const alertText = document.getElementById('smoothFeasibilityText');
     const btn = document.getElementById('btnSmoothMesh');
 
-    // 1. Structure Feasibility Pre-Check
-    const feasibility = MeshRepairer.checkSmoothingFeasibility(sourceGeom, this.lastAnalysisResult);
-    if (!feasibility.canSmooth) {
+    // Structural feasibility pre-check (smoothing bad non-manifold meshes leads to collapse)
+    const currentAnalysis = this.activeAnalysis || MeshAnalyzer.analyze(sourceGeom);
+    const hasCriticalIssues = (currentAnalysis.nonManifoldEdgesCount > 0 || currentAnalysis.boundaryEdgesCount > 0);
+
+    if (hasCriticalIssues && !this.hasAutoRepaired) {
       if (alertEl) {
         alertEl.style.display = 'block';
         if (alertText) {
-          alertText.textContent = I18n.currentLang === 'de' ? feasibility.messageDe : feasibility.messageEn;
+          alertText.textContent = I18n.t('smoothFeasibilityWarning');
         }
       }
-      this.showToast(I18n.t('toastSmoothFeasibilityWarning'), 'warning');
-      return;
     } else {
       if (alertEl) alertEl.style.display = 'none';
     }
 
-    // 2. Read intensity settings
-    const intensityVal = parseInt(document.getElementById('smoothIntensity')?.value || '2', 10);
-    const passMap = { 1: 1, 2: 3, 3: 6, 4: 10 };
-    const iterations = passMap[intensityVal] || 3;
-    const preserveSharpEdges = document.getElementById('optProtectSharpEdges')?.checked ?? true;
-
     if (btn) {
       btn.disabled = true;
-      btn.textContent = I18n.t('btnSmoothingRunning');
+      btn.textContent = I18n.currentLang === 'de' ? 'Glätte Geometrie...' : 'Smoothing Mesh...';
     }
 
-    // Give UI brief tick for loading text
+    this.showToast(I18n.t('toastSmoothing'), 'info');
     await new Promise((r) => setTimeout(r, 60));
 
     try {
-      const smoothed = MeshRepairer.smoothTaubin(sourceGeom, {
+      const intensityVal = parseInt(document.getElementById('smoothIntensity').value, 10);
+      const iterations = intensityVal === 1 ? 4 : intensityVal === 2 ? 8 : 14;
+      const preserveSharpEdges = intensityVal <= 2;
+
+      const smoothed = MeshRepairer.smoothMesh(sourceGeom, {
         iterations,
         preserveSharpEdges,
         angleThresholdDeg: 35,
@@ -1188,8 +1997,13 @@ class App {
 
       // Update Viewport & UI with smooth shading
       this.viewer.setRepairedGeometry(this.repairedGeometry, true);
-      document.querySelectorAll('.mode-btn').forEach((b) => b.classList.remove('active'));
-      document.querySelector('.mode-btn[data-mode="repaired"]')?.classList.add('active');
+      document.querySelectorAll('.mode-btn, .mode-quick-btn').forEach((b) => {
+        b.disabled = false;
+        b.classList.remove('active');
+      });
+      document.querySelectorAll('.mode-btn[data-mode="repaired"], .mode-quick-btn[data-mode="repaired"]').forEach((b) => b.classList.add('active'));
+      const btnResetSmooth = document.getElementById('btnResetSmooth');
+      if (btnResetSmooth) btnResetSmooth.disabled = false;
 
       // Re-run diagnostics
       this.runAnalysis(this.repairedGeometry, false);
@@ -1207,18 +2021,48 @@ class App {
   }
 
   /**
-   * Reset smoothing back to the un-smoothed base geometry
+   * Reset smoothing back to the un-smoothed base geometry and reset intensity slider to default (Medium)
    */
   resetSmoothing() {
+    const smoothSlider = document.getElementById('smoothIntensity');
+    if (smoothSlider) {
+      smoothSlider.value = '2';
+      smoothSlider.dispatchEvent(new Event('input'));
+    }
+    const smoothVal = document.getElementById('smoothIntensityValue');
+    if (smoothVal) smoothVal.textContent = I18n.t('levelMedium');
+    const btnResetSmooth = document.getElementById('btnResetSmooth');
+    if (btnResetSmooth) btnResetSmooth.disabled = true;
+
     const base = this.baseFullDetailGeometry || this.originalGeometry;
     if (!base) return;
 
-    this.repairedGeometry = base.clone();
-    this.viewer.setRepairedGeometry(this.repairedGeometry, false);
-    document.querySelectorAll('.mode-btn').forEach((b) => b.classList.remove('active'));
-    document.querySelector('.mode-btn[data-mode="repaired"]')?.classList.add('active');
+    if (this.hasAutoRepaired) {
+      this.repairedGeometry = base.clone();
+      this.viewer.setRepairedGeometry(this.repairedGeometry, false);
+      document.querySelectorAll('.mode-btn, .mode-quick-btn').forEach((b) => b.classList.remove('active'));
+      document.querySelectorAll('.mode-btn[data-mode="repaired"], .mode-quick-btn[data-mode="repaired"]').forEach((b) => b.classList.add('active'));
+      this.runAnalysis(this.repairedGeometry, false);
+    } else {
+      this.repairedGeometry = null;
+      if (this.viewer.repairedMesh) {
+        this.viewer.scene.remove(this.viewer.repairedMesh);
+        this.viewer.repairedMesh.geometry.dispose();
+        this.viewer.repairedMesh = null;
+      }
+      this.viewer.switchViewMode('original');
+      document.querySelectorAll('.mode-btn, .mode-quick-btn').forEach((b) => {
+        b.classList.remove('active');
+        if (b.dataset.mode !== 'original') {
+          b.disabled = true;
+        } else {
+          b.disabled = false;
+          b.classList.add('active');
+        }
+      });
+      this.runAnalysis(this.originalGeometry, true);
+    }
 
-    this.runAnalysis(this.repairedGeometry, false);
     this.showToast(I18n.t('toastSmoothReset'), 'info');
   }
 
@@ -1431,7 +2275,15 @@ class App {
   }
 }
 
-// Bootstrap on DOM ready
-document.addEventListener('DOMContentLoaded', () => {
-  window.meshApp = new App();
-});
+// Bootstrap on DOM ready or immediately if already loaded
+function initApp() {
+  if (!window.meshApp) {
+    window.meshApp = new App();
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
