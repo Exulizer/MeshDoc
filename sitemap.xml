@@ -3,7 +3,7 @@
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://www.meshdoc.de/</loc>
-    <lastmod>2026-09-13</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://www.meshdoc.de/"/>
@@ -14,7 +14,7 @@
   </url>
   <url>
     <loc>https://www.meshdoc.de/?lang=de</loc>
-    <lastmod>2026-09-13</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://www.meshdoc.de/"/>
@@ -22,5 +22,17 @@
     <xhtml:link rel="alternate" hreflang="de" href="https://www.meshdoc.de/?lang=de"/>
     <xhtml:link rel="alternate" hreflang="de-DE" href="https://www.meshdoc.de/?lang=de"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.meshdoc.de/"/>
+  </url>
+  <url>
+    <loc>https://www.meshdoc.de/wissen/non-manifold-stl.html</loc>
+    <lastmod>2026-10-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.meshdoc.de/wissen/stl-vs-3mf.html</loc>
+    <lastmod>2026-10-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
 </urlset>
